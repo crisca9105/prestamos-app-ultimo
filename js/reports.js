@@ -207,3 +207,8 @@ function initReportSelectors() {
     renderClientHistory();
 }
 
+
+
+
+
+

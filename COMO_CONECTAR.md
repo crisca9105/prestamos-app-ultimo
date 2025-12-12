@@ -177,3 +177,8 @@ Tu app ahora está conectada a Supabase y funcionando en la nube. Los datos se s
 2. Revisa los logs en Supabase → Logs
 3. Abre la consola del navegador (F12) y revisa errores
 
+
+
+
+
+

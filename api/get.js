@@ -21,13 +21,13 @@ export default async function handler(req, res) {
 
   try {
     // Inicializar cliente de Supabase
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ 
         error: 'Supabase configuration missing',
-        message: 'Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables'
+        message: 'Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables'
       });
     }
 
@@ -72,4 +72,3 @@ export default async function handler(req, res) {
     });
   }
 }
-
