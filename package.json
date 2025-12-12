@@ -1,0 +1,17 @@
+{
+  "name": "prestamos-app",
+  "version": "1.0.0",
+  "description": "Sistema de gestión de préstamos con Supabase",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.87.1"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}

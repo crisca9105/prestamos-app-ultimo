@@ -1,1813 +1,217 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Gestión de Préstamos — Reportes y Calendario</title>
-<style>
-/* --- Base styles (kept compact) --- */
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;color:#0f172a;padding:18px}
-.container{max-width:1200px;margin:0 auto}
-
-/* Cards & layout */
-.header,.form-section,.card{background:white;border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 8px 24px rgba(2,6,23,0.18)}
-.header h1{color:#4f46e5;font-size:22px;margin-bottom:6px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
-.stat-card{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:12px;border-radius:10px;text-align:center}
-.stat-card label{display:block;font-size:12px;opacity:.85}
-.stat-card .value{font-weight:700;font-size:18px;margin-top:6px}
-
-/* form */
-.form-grid{display:grid;gap:10px;grid-template-columns:1fr;margin-bottom:12px}
-@media(min-width:768px){.form-grid{grid-template-columns:repeat(2,1fr)}}
-input,select,button{font-family:inherit}
-input[type="text"],input[type="number"],input[type="date"]{width:100%;padding:10px;border:1px solid #e6eef7;border-radius:8px}
-.btn{padding:10px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
-.btn-primary{background:linear-gradient(90deg,#6366f1,#7c3aed);color:#fff}
-.btn-danger{background:#ef4444;color:#fff}
-.btn-success{background:#10b981;color:#fff}
-
-/* single column layout */
-.layout{display:grid;grid-template-columns:1fr;gap:18px}
-
-/* calendar */
-.calendar{background:#fff;border-radius:12px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,.12)}
-.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.cal-controls{display:flex;gap:8px;align-items:center}
-.month-label{font-weight:700;font-size:16px;color:#0f172a}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
-.weekday{text-align:center;font-size:12px;color:#475569;padding:6px 4px}
-.day-cell{min-height:96px;background:#f8fafc;border-radius:8px;padding:8px;position:relative;overflow:hidden;border:1px solid transparent}
-.day-cell.other-month{opacity:.45}
-.day-num{position:absolute;top:8px;right:8px;font-weight:700;color:#0f172a;font-size:13px}
-.events{margin-top:22px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;padding-right:6px}
-.event-pill{display:flex;align-items:center;gap:8px;padding:6px;border-radius:8px;font-size:13px;background:#fff;border:1px solid #e6eef7}
-.event-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.dot-vencida{background:#ef4444}
-.dot-proxima{background:#f59e0b}
-.dot-hoy{background:#10b981}
-.day-total{position:absolute;bottom:8px;left:8px;font-size:12px;font-weight:700;color:#0f172a}
-
-/* groups */
-.groups{display:grid;gap:12px;margin-top:12px}
-.group-card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 6px 12px rgba(2,6,23,.06)}
-.group-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto}
-.group-item{display:flex;justify-content:space-between;gap:8px;padding:8px;border-radius:8px;background:#f8fafc;border:1px solid #e6eef7;align-items:center}
-.small-date{font-size:12px;color:#475569}
-.badge{padding:4px 8px;border-radius:8px;font-size:12px;font-weight:700;display:inline-block}
-.badge-vencida{background:#fee2e2;color:#991b1b}
-.badge-proxima{background:#fef3c7;color:#92400e}
-.badge-hoy{background:#d1fae5;color:#065f46}
-
-/* loans list */
-.loans-list{display:flex;flex-direction:column;gap:10px}
-.loan-card{background:#fff;padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,.08)}
-.loan-info{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
-
-/* Reports area */
-.reports{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
-@media(min-width:900px){.reports{grid-template-columns:1fr 360px}}
-.report-card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 6px 12px rgba(2,6,23,.06)}
-.table{width:100%;border-collapse:collapse}
-.table th{background:#f3f4f6;padding:8px;text-align:left;font-size:13px}
-.table td{padding:8px;border-bottom:1px solid #eef2f7;font-size:13px}
-
-/* mountain chart (simple CSS bars) */
-.mountain { height:140px; display:flex; align-items:end; gap:6px; padding:8px; background:#f8fafc;border-radius:8px;border:1px solid #e6eef7; overflow:hidden }
-.mountain .bar{flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px}
-.mountain .bar div{width:80%; border-radius:6px; background:linear-gradient(90deg,#6366f1,#7c3aed);}
-
-/* client history list */
-.client-list{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto}
-.client-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;background:#f8fafc;border:1px solid #e6eef7}
-
-/* small utilities */
-.small{font-size:12px;color:#475569}
-.flex-row{display:flex;align-items:center;gap:8px}
-
-/* Search functionality */
-.search-container{position:relative;margin-bottom:12px}
-.search-container input{width:100%;padding:12px 40px 12px 12px;border:1px solid #e6eef7;border-radius:8px;font-size:14px}
-.search-container .icon-search{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:16px}
-
-/* Payment modal */
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
-.modal-content{background:white;padding:20px;border-radius:12px;max-width:400px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,0.2);max-height:80vh;overflow-y:auto}
-.modal h3{margin-bottom:15px;color:#0f172a;font-size:18px}
-.modal .form-group{margin-bottom:12px}
-.modal label{display:block;margin-bottom:4px;font-weight:600;color:#374151;font-size:13px}
-.modal input, .modal select{width:100%;padding:8px;border:1px solid #e6eef7;border-radius:6px;font-size:13px}
-.modal .button-group{display:flex;gap:8px;justify-content:flex-end;margin-top:15px;position:sticky;bottom:0;background:white;padding-top:10px;margin-bottom:-10px}
-.modal .btn-cancel{background:#6b7280;color:white;padding:8px 12px}
-
-@media(max-width:720px){.day-cell{min-height:80px}.events{max-height:140px}}
-
-.loading{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.2);text-align:center;z-index:9999}
-.loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998}
-
-.api-status{padding:8px 12px;border-radius:8px;font-size:13px;display:inline-block;margin-top:8px}
-.api-connected{background:#d1fae5;color:#065f46}
-.api-disconnected{background:#fee2e2;color:#991b1b}
-.api-loading{background:#fef3c7;color:#92400e}
-</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Gestión de Préstamos — Reportes y Calendario</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-<div id="loadingOverlay" class="loading-overlay" style="display: none;">
-    <div id="loadingDiv" class="loading" style="display: none;">
-        <div style="margin-bottom: 10px; font-size: 24px;">🔄</div>
-        <div id="loadingText" style="font-weight: bold; font-size: 16px;">Cargando...</div>
-    </div>
-</div>
-
-<div class="container">
-    <div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="font-weight: bold;">🔗 API Status:</div>
-            <div id="apiStatus" class="api-status api-disconnected">✗ Desconectado</div>
-        </div>
-        <div id="configInstructions" style="margin-top: 8px; padding: 8px; background: #f8fafc; border-radius: 6px; display: none;">
-            <div style="font-size: 13px; color: #475569; margin-bottom: 6px;">Configura la URL de tu Google Apps Script:</div>
-            <div style="display: flex; gap: 6px; align-items: center;">
-                <input id="apiUrlInput" type="text" placeholder="https://script.google.com/..." style="flex: 1; padding: 6px; border: 1px solid #e6eef7; border-radius: 6px; font-size: 13px;">
-                <button class="btn btn-primary" onclick="saveApiUrl()" style="padding: 6px 12px; font-size: 12px;">Guardar URL</button>
-                <button class="btn" onclick="testConnection()" style="padding: 6px 12px; font-size: 12px;">Probar Conexión</button>
-            </div>
-        </div>
-    </div>
-    <div class="header">
-        <h1>💰 Gestión de Préstamos — Reportes</h1>
-        <p class="small" style="margin-top:6px;color:#64748b">Reportes mensuales, flujo proyectado y comportamiento de pagos.</p>
-        <div class="stats" style="margin-top:12px">
-            <div class="stat-card"><label>Total Prestado</label><div class="value" id="totalPrestado">$0</div></div>
-            <div class="stat-card"><label>Total a Cobrar</label><div class="value" id="totalACobrar">$0</div></div>
-            <div class="stat-card"><label>Capital Restante</label><div class="value" id="capitalRestante">$0</div></div>
-            <div class="stat-card"><label>Intereses Cobrados</label><div class="value" id="interesesCobrados">$0</div></div>
-            <div class="stat-card"><label>Préstamos Activos</label><div class="value" id="prestamosActivos">0</div></div>
-            <div class="stat-card"><label>Cuotas Vencidas</label><div class="value" id="cuotasVencidasGlobal">0</div></div>
-        </div>
-    </div>
-
-        <div style="margin-top:12px">
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                <span class="small">Estado de conexión:</span>
-                <span id="apiStatus" class="api-status api-loading">Verificando...</span>
-                <button class="btn" onclick="testConnection()" style="padding:6px 12px;font-size:12px">Probar Conexión</button>
-                <button class="btn btn-primary" onclick="cargarDatos()" style="padding:6px 12px;font-size:12px">🔄 Recargar Datos</button>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Gestión de Préstamos — Reportes</h1>
+            <p class="small" style="margin-top:6px;color:#64748b">Reportes mensuales, flujo proyectado y comportamiento de pagos.</p>
+            <div class="stats" style="margin-top:12px">
+                <div class="stat-card"><label>Total Prestado</label><div class="value" id="totalPrestado">$0</div></div>
+                <div class="stat-card"><label>Total a Cobrar</label><div class="value" id="totalACobrar">$0</div></div>
+                <div class="stat-card"><label>Capital Restante</label><div class="value" id="capitalRestante">$0</div></div>
+                <div class="stat-card"><label>Intereses Cobrados</label><div class="value" id="interesesCobrados">$0</div></div>
+                <div class="stat-card"><label>Préstamos Activos</label><div class="value" id="prestamosActivos">0</div></div>
+                <div class="stat-card"><label>Cuotas Vencidas</label><div class="value" id="cuotasVencidasGlobal">0</div></div>
             </div>
         </div>
 
-    <div class="form-section">
-        <h3 style="margin-bottom:10px">➕ Nuevo Préstamo</h3>
-
-        <!-- Instrucciones de configuración -->
-        <div id="configInstructions" style="background:#fef3c7;border:1px solid #f59e0b;padding:12px;border-radius:8px;margin-bottom:12px">
-            <strong style="color:#92400e">⚠️ Configuración requerida:</strong>
-            <ol style="margin-left:20px;margin-top:8px;color:#92400e;font-size:13px">
-                <li>Copia el código de Google Apps Script</li>
-                <li>Ve a tu Google Sheet → Extensiones → Apps Script</li>
-                <li>Pega el código y guarda</li>
-                <li>Haz clic en "Implementar" → "Nueva implementación"</li>
-                <li>Tipo: "Aplicación web"</li>
-                <li>Ejecutar como: "Yo"</li>
-                <li>Quién tiene acceso: "Cualquier persona"</li>
-                <li>Copia la URL y pégala abajo</li>
-            </ol>
-            <div style="margin-top:10px">
-                <input id="apiUrlInput" type="text" placeholder="https://script.google.com/macros/s/AKfycbyw7A9KpOmysyFMXKjYHGL5EErcDU8qbNdHhkJwXSXGKFYWPFNotAhdYXHjTfQNiu2JLg/exec" style="width:100%;margin-bottom:8px">
-                <button class="btn btn-primary" onclick="saveApiUrl()">Guardar URL</button>
-            </div>
-        </div>
-
-        <div class="form-grid">
-            <input id="nombre" type="text" placeholder="Nombre del prestatario">
-            <input id="monto" type="number" placeholder="Monto prestado (COP)">
-            <input id="tasa" type="number" step="0.01" placeholder="Tasa mensual (%)">
-            <input id="cuotas" type="number" placeholder="Número de cuotas">
-            <select id="tipoPrestamo" onchange="toggleCuotasInput()">
-                <option value="cuotas_fijas">Cuotas Fijas</option>
-                <option value="solo_interes">Solo Interés Mensual</option>
-            </select>
-            <input id="fechaPrestamo" type="date">
-            <input id="diaCobro" type="number" placeholder="Día de cobro (1-31)" min="1" max="31">
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="btn btn-primary" onclick="agregarPrestamo()">Agregar Préstamo</button>
-            <button class="btn" onclick="limpiarStorage()">Limpiar Datos</button>
-        </div>
-    </div>
-
-    <div class="layout">
-        <!-- Loans Section - Full Width -->
-        <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <h3 style="margin:0;color:#0f172a">Préstamos</h3>
-                <div style="display:flex;gap:8px">
-                    <button class="btn" onclick="renderLoans()">Ordenar / Actualizar</button>
-                </div>
-            </div>
-
-            <!-- Search Container -->
-            <div class="search-container">
-                <input id="searchInput" type="text" oninput="filtrarClientes()" placeholder="Buscar cliente por nombre, documento o número de préstamo...">
-                <span class="icon-search">🔍</span>
-            </div>
-
-            <div class="loans-list" id="loansContainer"></div>
-
-            <div class="groups" style="margin-top:12px">
-                <div class="group-card"><h4>📅 Cobros de esta semana</h4><div class="group-list" id="groupThisWeek"></div></div>
-                <div class="group-card"><h4>🗓️ Cobros del mes actual</h4><div class="group-list" id="groupThisMonth"></div></div>
-                <div class="group-card"><h4>📆 Cobros del próximo mes</h4><div class="group-list" id="groupNextMonth"></div></div>
-                <div class="group-card"><h4>🔮 Cobros futuros</h4><div class="group-list" id="groupFuture"></div></div>
-            </div>
-        </div>
-
-        <!-- Calendar + Reports Section -->
-        <div>
-            <div class="calendar">
-                <div class="cal-header">
-                    <div class="cal-controls">
-                        <button class="btn" id="prevMonth"><</button>
-                        <div class="month-label" id="monthLabel">Mes Año</div>
-                        <button class="btn" id="nextMonth">></button>
-                        <button class="btn" id="todayBtn">Hoy</button>
-                    </div>
-                    <div class="flex-row">
-                        <button class="btn btn-primary" onclick="renderCalendar(currentYear,currentMonth)">Refrescar</button>
-                    </div>
-                </div>
-
-                <div class="cal-grid" id="weekdayHeader" style="margin-bottom:8px">
-                    <div class="weekday">Lun</div><div class="weekday">Mar</div><div class="weekday">Mié</div>
-                    <div class="weekday">Jue</div><div class="weekday">Vie</div><div class="weekday">Sáb</div><div class="weekday">Dom</div>
-                </div>
-
-                <div class="cal-grid" id="calendarGrid"></div>
-            </div>
-
-            <div class="reports">
-                <div class="report-card">
-                    <h4>📊 Reporte mensual — Comparativo</h4>
-                    <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-                        <div class="small">Mes actual:</div>
-                        <select id="reportMonthSelector" onchange="renderMonthlyReport()"></select>
-                        <div class="small">Año:</div>
-                        <select id="reportYearSelector" onchange="renderMonthlyReport()"></select>
-                        <button class="btn" onclick="renderMonthlyReport()">Aplicar</button>
-                    </div>
-
-                    <table class="table" style="margin-top:10px">
-                        <thead>
-                            <tr><th>Concepto</th><th>Mes Actual</th><th>Mes Pasado</th></tr>
-                        </thead>
-                        <tbody id="monthlyReportBody">
-                            <tr><td>Total (Capital+Interés)</td><td id="r_total_current">$0</td><td id="r_total_prev">$0</td></tr>
-                            <tr><td>Solo Intereses</td><td id="r_interest_current">$0</td><td id="r_interest_prev">$0</td></tr>
-                            <tr><td>Variación %</td><td id="r_variation">0%</td><td></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="report-card">
-                    <h4>📈 Flujo proyectado (12 meses)</h4>
-                    <div class="small" style="margin-bottom:8px">Proyección de ingresos (capital + interés) por mes según cuotas programadas.</div>
-                    <div class="mountain" id="projectedMountain"></div>
-                    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#475569" id="projLabels"></div>
-                </div>
-
-                <div class="report-card" style="grid-column:1/ -1">
-                    <h4>📊 Intereses cobrados por mes (histórico)</h4>
-                    <table class="table" id="interestsTable">
-                        <thead><tr><th>Mes</th><th>Intereses cobrados (pagados)</th></tr></thead>
-                        <tbody id="interestsBody"></tbody>
-                    </table>
-                </div>
-
-                <div class="report-card">
-                    <h4>👥 Historial de pagos — Comportamiento</h4>
-                    <div class="small" style="margin-bottom:8px">Lista rápida: % a tiempo — clientes que pagan bien vs. los que atrasan.</div>
-                    <div class="client-list" id="clientHistoryList"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div id="paymentModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>Pagar Cuota con Excedente (Modificación Automática)</h3>
-            <div class="form-group">
-                <label>Cliente:</label>
-                <input id="modalClientName" type="text" readonly>
-            </div>
-            <div class="form-group">
-                <label>Cuota #:</label>
-                <input id="modalCuotaNumber" type="text" readonly>
-            </div>
-            <div class="form-group">
-                <label>Valor Cuota:</label>
-                <input id="modalCuotaValue" type="text" readonly>
-            </div>
-            <div class="form-group">
-                <label>Pago Recibido:</label>
-                <input id="modalPagoRecibido" type="number" placeholder="Ingrese el monto recibido">
-            </div>
-            <div class="form-group">
-                <label>Modo de Recálculo:</label>
-                <select id="modalRecalculoMode">
-                    <option value="A">A - Reducir valor cuotas (mantener número)</option>
-                    <option value="B">B - Reducir número cuotas (mantener valor)</option>
+        <div class="form-section">
+            <h3 style="margin-bottom:10px">➕ Nuevo Préstamo</h3>
+            <div class="form-grid">
+                <input id="nombre" type="text" placeholder="Nombre del prestatario">
+                <input id="monto" type="number" placeholder="Monto prestado (COP)">
+                <input id="tasa" type="number" step="0.01" placeholder="Tasa mensual (%)">
+                <input id="cuotas" type="number" placeholder="Número de cuotas">
+                <select id="tipoPrestamo" onchange="toggleCuotasInput()">
+                    <option value="cuotas_fijas">Cuotas Fijas</option>
+                    <option value="solo_interes">Solo Interés Mensual</option>
                 </select>
+                <input id="fechaPrestamo" type="date">
+                <input id="diaCobro" type="number" placeholder="Día de cobro (1-31)" min="1" max="31">
             </div>
-            <div class="form-group">
-                <label>Excedente:</label>
-                <input id="modalExcedente" type="text" readonly style="background:#f3f4f6;color:#6b7280">
-            </div>
-            <div class="form-group">
-                <label>Efecto en cuotas futuras:</label>
-                <div style="background:#f3f4f6;color:#6b7280;padding:8px;border-radius:6px;font-size:12px;margin-bottom:10px;">
-                    El excedente se aplicará automáticamente al capital pendiente y modificará las cuotas futuras según el modo seleccionado.
-                </div>
-            </div>
-            <div class="button-group">
-                <button class="btn btn-cancel" onclick="cerrarModalPago()">Cancelar</button>
-                <button class="btn btn-primary" onclick="confirmarPagoExcedente()">Confirmar Pago</button>
+            <div style="display:flex;gap:8px;margin-top:8px">
+                <button class="btn btn-primary" onclick="agregarPrestamo()">Agregar Préstamo</button>
+                <button class="btn" onclick="limpiarStorage()">Limpiar Datos</button>
             </div>
         </div>
-    </div>
 
-    <!-- Date Edit Modal -->
-    <div id="dateEditModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3 id="dateEditTitle">Editar Fecha</h3>
-            <div class="form-group">
-                <label id="dateEditLabel">Nueva fecha:</label>
-                <input id="dateEditInput" type="date">
-            </div>
-            <div class="form-group">
-                <label>Recalcular cuotas automáticamente:</label>
-                <input type="checkbox" id="recalcularCuotas" checked>
-                <small style="display:block;color:#6b7280;margin-top:4px">Si está activado, se recalcularán todas las fechas de cobro basadas en la nueva fecha de préstamo</small>
-            </div>
-            <div class="button-group">
-                <button class="btn btn-cancel" onclick="cerrarModalEdicionFecha()">Cancelar</button>
-                <button class="btn btn-primary" onclick="confirmarEdicionFecha()">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-// ============ CONFIGURACIÓN DE API ============
-const API_URL_KEY = 'PRESTAMOS_API_URL';
-let API_URL = localStorage.getItem(API_URL_KEY) || "";
-let loans = [];
-
-// ============ FUNCIONES DE UI ============
-function showLoading(text = "Cargando...") {
-    document.getElementById('loadingText').textContent = text;
-    document.getElementById('loadingOverlay').style.display = 'block';
-    document.getElementById('loadingDiv').style.display = 'block';
-}
-
-function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
-    document.getElementById('loadingDiv').style.display = 'none';
-}
-
-function updateApiStatus(status, message) {
-    const statusEl = document.getElementById('apiStatus');
-    statusEl.className = 'api-status api-' + status;
-    statusEl.textContent = message;
-}
-
-function saveApiUrl() {
-    const url = document.getElementById('apiUrlInput').value.trim();
-    if (!url) {
-        alert('Por favor ingresa una URL válida');
-        return;
-    }
-    localStorage.setItem(API_URL_KEY, url);
-    API_URL = url;
-    document.getElementById('configInstructions').style.display = 'none';
-    updateApiStatus('loading', 'URL guardada. Probando conexión...');
-    testConnection();
-}
-
-function testConnection() {
-    if (!API_URL) {
-        updateApiStatus('disconnected', 'URL no configurada');
-        document.getElementById('configInstructions').style.display = 'block';
-        return;
-    }
-    
-    updateApiStatus('loading', 'Probando conexión...');
-    
-    fetch(API_URL)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'ok') {
-                updateApiStatus('connected', '✓ Conectado a Google Sheets');
-                document.getElementById('configInstructions').style.display = 'none';
-            } else {
-                updateApiStatus('disconnected', '✗ Error de conexión');
-            }
-        })
-        .catch(error => {
-            updateApiStatus('disconnected', '✗ No se pudo conectar');
-            console.error('Error de conexión:', error);
-        });
-}
-
-function showLoading(text = "Cargando...") {
-    document.getElementById('loadingText').textContent = text;
-    document.getElementById('loadingOverlay').style.display = 'block';
-    document.getElementById('loadingDiv').style.display = 'block';
-}
-
-function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
-    document.getElementById('loadingDiv').style.display = 'none';
-}
-
-function updateApiStatus(status, message) {
-    const statusEl = document.getElementById('apiStatus');
-    statusEl.className = 'api-status api-' + status;
-    statusEl.textContent = message;
-}
-
-async function testConnection() {
-    if (!API_URL) {
-        updateApiStatus('disconnected', 'URL no configurada');
-        document.getElementById('configInstructions').style.display = 'block';
-        return;
-    }
-
-    try {
-        updateApiStatus('loading', 'Probando conexión...');
-        const response = await fetch(API_URL);
-        const data = await response.json();
-
-        if (data.status === 'ok') {
-            updateApiStatus('connected', '✓ Conectado a Google Sheets');
-            document.getElementById('configInstructions').style.display = 'none';
-        } else {
-            updateApiStatus('disconnected', '✗ Error de conexión');
-        }
-    } catch (error) {
-        updateApiStatus('disconnected', '✗ No se pudo conectar');
-        console.error('Error de conexión:', error);
-    }
-}
-
-async function apiRequest(payload) {
-    if (!API_URL) {
-        alert('Por favor configura la URL de Google Apps Script primero');
-        document.getElementById('configInstructions').style.display = 'block';
-        return { status: 'error', message: 'URL no configurada' };
-    }
-
-    try {
-        const res = await fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify(payload),
-            headers: { "Content-Type": "application/json" }
-        });
-        return await res.json();
-    } catch (e) {
-        console.error('Error en API request:', e);
-        return { status: "error", message: e.toString() };
-    }
-}
-// ------------------- Base loan logic (adapted) -------------------
-
-document.getElementById('fechaPrestamo').valueAsDate = new Date();
-document.getElementById('tipoPrestamo').value = 'cuotas_fijas'; // Set default value
-toggleCuotasInput(); // Initialize form state
-
-function toggleCuotasInput(){
-    const tipo = document.getElementById('tipoPrestamo').value;
-    const cuotasInput = document.getElementById('cuotas');
-    if(tipo === 'solo_interes'){
-        cuotasInput.disabled = true;
-        cuotasInput.placeholder = "No aplica (solo interés)";
-        cuotasInput.value = "";
-    } else {
-        cuotasInput.disabled = false;
-        cuotasInput.placeholder = "Número de cuotas";
-    }
-}
-
-async function guardarCambios(loan) {
-    const result = await apiRequest({
-        mode: "UPDATE",
-        id: loan.id,
-        capitalPendiente: loan.capitalPendiente,
-        tabla: loan.tabla,
-        nombre: loan.nombre,
-        fechaPrestamo: loan.fechaPrestamo
-    });
-
-    if (result.status !== 'ok') {
-        console.error('Error guardando cambios:', result.message);
-    }
-}
-
-async function cargarDatos() {
-    showLoading('Cargando datos desde Google Sheets...');
-
-    const res = await apiRequest({ mode: "GET_ALL" });
-
-    hideLoading();
-
-    if (res.status === "ok") {
-        loans = res.loans || [];
-
-        // Compatibilidad hacia atrás
-        loans.forEach(loan => {
-            if (loan.tabla) {
-                loan.tabla.forEach(cuota => {
-                    if (cuota.multa === undefined) cuota.multa = 0;
-                    if (cuota.multaPagada === undefined) cuota.multaPagada = false;
-                    if (cuota.fechaPagoMulta === undefined) cuota.fechaPagoMulta = null;
-                });
-            }
-
-            if (loan.capitalPendiente === undefined) {
-                const capitalPagado = loan.tabla
-                    .filter(c => c.pagada)
-                    .reduce((sum, c) => sum + (c.abonoCapital || 0), 0);
-                loan.capitalPendiente = loan.monto - capitalPagado;
-            }
-        });
-
-        renderAll();
-        updateApiStatus('connected', '✓ Datos cargados (' + loans.length + ' préstamos)');
-    } else {
-        updateApiStatus('disconnected', '✗ Error al cargar datos');
-        alert('Error al cargar datos: ' + res.message);
-    }
-}
-
-async function limpiarStorage() {
-    if(!confirm('¿Estás seguro de eliminar TODOS los préstamos?')) return;
-    if(!confirm('Esta acción NO se puede deshacer. ¿Continuar?')) return;
-
-    showLoading('Eliminando todos los préstamos...');
-
-    for (const loan of loans) {
-        await apiRequest({
-            mode: "DELETE",
-            id: loan.id
-        });
-    }
-
-    loans = [];
-    hideLoading();
-    renderAll();
-    alert('✓ Todos los préstamos han sido eliminados');
-}
-
-function calcularCuotaFija(monto,tasa,cuotas){
-    const i = tasa/100;
-    return monto * (i * Math.pow(1+i,cuotas)) / (Math.pow(1+i,cuotas)-1);
-}
-function calcularFechaCuota(fechaInicio,numeroCuota,diaCobro){
-    const fecha = new Date(fechaInicio);
-    fecha.setMonth(fecha.getMonth() + numeroCuota);
-    if(diaCobro){
-        const ultimo = new Date(fecha.getFullYear(), fecha.getMonth()+1,0).getDate();
-        fecha.setDate(Math.min(diaCobro, ultimo));
-    }
-    return fecha;
-}
-
-// Helper: suma meses a una fecha y respeta diaCobro
-function getNextFechaCobro(fechaBaseISO, mesesSumar, diaCobro) {
-    const fechaBase = new Date(fechaBaseISO);
-    const res = new Date(fechaBase.getFullYear(), fechaBase.getMonth() + mesesSumar, 1);
-    if (diaCobro) {
-        const ultimo = new Date(res.getFullYear(), res.getMonth() + 1, 0).getDate();
-        res.setDate(Math.min(diaCobro, ultimo));
-    } else {
-        // mantener mismo día que fechaBase si es posible
-        const d = fechaBase.getDate();
-        const ultimo = new Date(res.getFullYear(), res.getMonth() + 1, 0).getDate();
-        res.setDate(Math.min(d, ultimo));
-    }
-    return res;
-}
-function estaVencida(f){
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
-    const ff = new Date(f); ff.setHours(0,0,0,0);
-    return ff < hoy;
-}
-function esProxima(f){
-    const hoy = new Date(); hoy.setHours(0,0,0,0);
-    const ff = new Date(f); ff.setHours(0,0,0,0);
-    const dif = (ff - hoy)/86400000;
-    return dif >=0 && dif <=7;
-}
-function formatearFecha(f){ return new Date(f).toLocaleDateString('es-CO',{year:'numeric',month:'short',day:'numeric'}); }
-function formatMoney(n){ return '$' + Math.round(n).toLocaleString('es-CO'); }
-
-function generarTablaAmortizacion(m,t,c,fi,dia){
-    const i = t/100;
-    const cuotaFija = calcularCuotaFija(m,t,c);
-    let saldo = m; const tabla=[];
-    for(let n=1;n<=c;n++){
-        const interes = saldo * i;
-        const abono = cuotaFija - interes;
-        saldo = Math.max(0, saldo - abono);
-        tabla.push({
-            cuota:n,
-            cuotaFija,
-            interes,
-            abonoCapital:abono,
-            saldo,
-            fechaCobro:calcularFechaCuota(fi,n,dia).toISOString(),
-            pagada:false,
-            fechaPago:null,
-            multa: 0,
-            multaPagada: false,
-            fechaPagoMulta: null
-        });
-    }
-    return tabla;
-}
-
-async function agregarPrestamo(){
-    const nombre = document.getElementById('nombre').value.trim();
-    const monto = parseFloat(document.getElementById('monto').value);
-    const tasa = parseFloat(document.getElementById('tasa').value);
-    const tipo = document.getElementById('tipoPrestamo').value;
-    const cuotas = tipo === 'cuotas_fijas' ? parseInt(document.getElementById('cuotas').value) : null;
-    const fechaPrestamo = document.getElementById('fechaPrestamo').value;
-    const diaCobro = parseInt(document.getElementById('diaCobro').value) || null;
-    
-    if(!nombre||!monto||!tasa||!fechaPrestamo){ alert('Completa todos los campos'); return; }
-    if(tipo === 'cuotas_fijas' && !cuotas){ alert('Ingresa el número de cuotas'); return; }
-    
-    let nuevoPrestamo;
-    if(tipo === 'solo_interes'){
-        const interesMensual = monto * (tasa/100);
-        nuevoPrestamo = { 
-            id: Date.now(), 
-            nombre, 
-            monto, 
-            tasa, 
-            tipo: 'solo_interes',
-            cuotas: null,
-            cuotaFija: interesMensual,
-            totalPagar: monto,
-            totalIntereses: 0,
-            fechaPrestamo,
-            diaCobro,
-            tabla: [],
-            capitalPendiente: monto
-        };
-    } else {
-        const tabla = generarTablaAmortizacion(monto,tasa,cuotas,fechaPrestamo,diaCobro);
-        const cuotaFija = calcularCuotaFija(monto,tasa,cuotas);
-        nuevoPrestamo = {
-            id: Date.now(),
-            nombre,
-            monto,
-            tasa,
-            tipo: 'cuotas_fijas',
-            cuotas,
-            cuotaFija,
-            totalPagar: cuotaFija*cuotas,
-            totalIntereses: cuotaFija*cuotas - monto,
-            fechaPrestamo,
-            diaCobro,
-            tabla,
-            capitalPendiente: monto
-        };
-    }
-    
-    showLoading('Guardando préstamo...');
-
-    const result = await apiRequest({
-        mode: "ADD",
-        ...nuevoPrestamo
-    });
-
-    hideLoading();
-
-    if (result.status === 'ok') {
-        loans.unshift(nuevoPrestamo);
-        renderAll();
-
-        // limpiar form
-        document.getElementById('nombre').value='';
-        document.getElementById('monto').value='';
-        document.getElementById('tasa').value='';
-        document.getElementById('cuotas').value='';
-        document.getElementById('fechaPrestamo').valueAsDate=new Date();
-        document.getElementById('diaCobro').value='';
-        document.getElementById('tipoPrestamo').value='cuotas_fijas';
-        toggleCuotasInput();
-
-        alert('✓ Préstamo guardado exitosamente en Google Sheets');
-    } else {
-        alert('Error al guardar: ' + result.message);
-    }
-}
-
-
-function calcularStats(loan){
-    // NUEVO: Lógica específica para préstamos solo interés
-    if(loan.tipo === 'solo_interes'){
-        const cuotasPagadas = loan.tabla.filter(c=>c.pagada).length;
-        const interesesPagados = loan.tabla.filter(c=>c.pagada).reduce((s,c)=>s+c.interes,0);
-        const capitalRestante = loan.monto; // El capital nunca se reduce
-        const proxima = loan.tabla.find(c=>!c.pagada) || null;
-        const vencidas = loan.tabla.filter(c=>!c.pagada && estaVencida(c.fechaCobro)).length;
-        return { 
-            cuotasPagadas, 
-            capitalPagado:0, 
-            interesesPagados, 
-            capitalRestante, 
-            progreso: 0, 
-            proximaCuota:proxima, 
-            cuotasVencidas:vencidas 
-        };
-    }
-    
-    // Código original para cuotas fijas...
-    const cuotasPagadas = loan.tabla.filter(c=>c.pagada).length;
-    const capitalPagado = loan.tabla.filter(c=>c.pagada).reduce((s,c)=>s+c.abonoCapital,0);
-    const interesesPagados = loan.tabla.filter(c=>c.pagada).reduce((s,c)=>s+c.interes,0);
-    const capitalRestante = loan.monto - capitalPagado;
-    const progreso = (cuotasPagadas/loan.cuotas)*100;
-    const proxima = loan.tabla.find(c=>!c.pagada) || null;
-    const vencidas = loan.tabla.filter(c=>!c.pagada && estaVencida(c.fechaCobro)).length;
-    return { cuotasPagadas, capitalPagado, interesesPagados, capitalRestante, progreso, proximaCuota:proxima, cuotasVencidas:vencidas };
-}
-
-async function toggleCuota(loanId, idx){
-    const loan = loans.find(l=>l.id===loanId);
-    if(!loan) return;
-
-    loan.tabla[idx].pagada = !loan.tabla[idx].pagada;
-    loan.tabla[idx].fechaPago = loan.tabla[idx].pagada ? new Date().toISOString() : null;
-
-    // Recalcular capital pendiente
-    const capitalPagado = loan.tabla.filter(c=>c.pagada).reduce((s,c)=>s+(c.abonoCapital||0),0);
-    loan.capitalPendiente = loan.monto - capitalPagado;
-
-    await guardarCambios(loan);
-    renderAll();
-}
-
-async function pagarMulta10Porciento(loanId, idx){
-    const loan = loans.find(l=>l.id===loanId); if(!loan) return;
-    const cuota = loan.tabla[idx];
-    
-    // Calcular multa del 10%
-    const multa = cuota.cuotaFija * 0.10;
-    
-    // Marcar multa como pagada
-    cuota.multa = multa;
-    cuota.multaPagada = true;
-    cuota.fechaPagoMulta = new Date().toISOString();
-    
-    // NUEVO: Mover la cuota original al siguiente mes
-    desplazarCuotasSiguienteMes(loan, idx);
-    
-    await guardarCambios(loan);
-    renderAll();
-
-    alert(`Multa de ${formatMoney(multa)} pagada.\nCuota original movida al siguiente mes.`);
-}
-
-function desplazarCuotasSiguienteMes(loan, cuotaIndex) {
-    // Obtener la fecha de la cuota actual
-    const fechaCuotaActual = new Date(loan.tabla[cuotaIndex].fechaCobro);
-    
-    // Mover la cuota actual al siguiente mes
-    const nuevaFecha = new Date(fechaCuotaActual);
-    nuevaFecha.setMonth(nuevaFecha.getMonth() + 1);
-    loan.tabla[cuotaIndex].fechaCobro = nuevaFecha.toISOString();
-    
-    // Ajustar el día del mes según el día de cobro configurado
-    if (loan.diaCobro) {
-        const ultimoDia = new Date(nuevaFecha.getFullYear(), nuevaFecha.getMonth() + 1, 0).getDate();
-        nuevaFecha.setDate(Math.min(loan.diaCobro, ultimoDia));
-        loan.tabla[cuotaIndex].fechaCobro = nuevaFecha.toISOString();
-    }
-    
-    // Recalcular todas las cuotas posteriores para mantener la secuencia correcta
-    recalcularFechasPosteriores(loan, cuotaIndex + 1);
-}
-
-function recalcularFechasPosteriores(loan, desdeIndex) {
-    // Solo recalcular para préstamos de cuotas fijas
-    if (loan.tipo !== 'cuotas_fijas') return;
-    
-    for (let i = desdeIndex; i < loan.tabla.length; i++) {
-        const cuotaAnterior = loan.tabla[i - 1];
-        if (cuotaAnterior) {
-            const fechaAnterior = new Date(cuotaAnterior.fechaCobro);
-            const nuevaFecha = new Date(fechaAnterior);
-            nuevaFecha.setMonth(nuevaFecha.getMonth() + 1);
-            
-            // Ajustar según el día de cobro configurado
-            if (loan.diaCobro) {
-                const ultimoDia = new Date(nuevaFecha.getFullYear(), nuevaFecha.getMonth() + 1, 0).getDate();
-                nuevaFecha.setDate(Math.min(loan.diaCobro, ultimoDia));
-            }
-            
-            loan.tabla[i].fechaCobro = nuevaFecha.toISOString();
-        }
-    }
-}
-async function eliminarPrestamo(id){
-    if(!confirm('¿Eliminar préstamo?')) return;
-
-    showLoading('Eliminando...');
-
-    const result = await apiRequest({
-        mode: "DELETE",
-        id: id
-    });
-
-    hideLoading();
-
-    if (result.status === 'ok') {
-        loans = loans.filter(l=>l.id!==id);
-        renderAll();
-        alert('✓ Préstamo eliminado');
-    } else {
-        alert('Error al eliminar: ' + result.message);
-    }
-}
-function exportarCSV(id){
-    const loan = loans.find(l=>l.id===id);
-    if(!loan) return;
-    let csv='Préstamo,Cuota,Fecha Cobro,Cuota Fija,Interés,Abono,Saldo,Estado,Fecha Pago,Multa 10%,Multa Pagada,Fecha Pago Multa\n';
-    loan.tabla.forEach(c=>{
-        csv += `${loan.nombre},${c.cuota},${formatearFecha(c.fechaCobro)},${c.cuotaFija.toFixed(0)},${c.interes.toFixed(0)},${c.abonoCapital.toFixed(0)},${c.saldo.toFixed(0)},${c.pagada?'Pagada':'Pendiente'},${c.fechaPago?formatearFecha(c.fechaPago):''},${(c.cuotaFija * 0.10).toFixed(0)},${c.multaPagada?'Sí':'No'},${c.fechaPagoMulta?formatearFecha(c.fechaPagoMulta):''}\n`;
-    });
-    const blob=new Blob([csv],{type:'text/csv'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`cuotas_${loan.nombre.replace(/\s/g,'_')}.csv`;
-    a.click();
-}
-
-/* Global statistics */
-function actualizarEstadisticas(){
-    const tp = loans.reduce((s,l)=>s+l.monto,0);
-    const tac = loans.reduce((s,l)=>s+l.totalPagar,0);
-    const cr = loans.reduce((s,l)=>s+calcularStats(l).capitalRestante,0);
-    const ic = loans.reduce((s,l)=>s+calcularStats(l).interesesPagados,0);
-    const vencidas = loans.reduce((s,l)=>s+calcularStats(l).cuotasVencidas,0);
-    document.getElementById('totalPrestado').textContent = formatMoney(tp);
-    document.getElementById('totalACobrar').textContent = formatMoney(tac);
-    document.getElementById('capitalRestante').textContent = formatMoney(cr);
-    document.getElementById('interesesCobrados').textContent = formatMoney(ic);
-    document.getElementById('prestamosActivos').textContent = loans.length;
-    document.getElementById('cuotasVencidasGlobal').textContent = vencidas;
-}
-
-/* ================= Calendar (same advanced calendar) ================= */
-let currentDate = new Date();
-let currentMonth = currentDate.getMonth();
-let currentYear = currentDate.getFullYear();
-
-document.getElementById('prevMonth').addEventListener('click',()=>{ changeMonth(-1); });
-document.getElementById('nextMonth').addEventListener('click',()=>{ changeMonth(1); });
-document.getElementById('todayBtn').addEventListener('click',()=>{ currentDate=new Date(); currentMonth=currentDate.getMonth(); currentYear=currentDate.getFullYear(); renderCalendar(currentYear,currentMonth); });
-
-function changeMonth(delta){ currentMonth += delta; if(currentMonth<0){ currentMonth=11; currentYear-=1; } if(currentMonth>11){ currentMonth=0; currentYear+=1; } renderCalendar(currentYear,currentMonth); }
-
-function getEventsInRange(startDate,endDate){
-    const events = {};
-    loans.forEach(loan=>{
-        loan.tabla.forEach(c=>{
-            if(c.pagada) return;
-            const f = new Date(c.fechaCobro); f.setHours(0,0,0,0);
-            if(f >= startDate && f <= endDate){
-                const key = f.toISOString().slice(0,10);
-                if(!events[key]) events[key]=[];
-                events[key].push({
-                    loanId: loan.id,
-                    nombre: loan.nombre,
-                    cuota: c.cuota,
-                    fecha: c.fechaCobro,
-                    valor: c.cuotaFija,
-                    pagada: c.pagada,
-                    estado: (estaVencida(c.fechaCobro)?'vencida':(new Date().toISOString().slice(0,10)===key?'hoy':(esProxima(c.fechaCobro)?'proxima':'normal')))
-                });
-            }
-        });
-    });
-    return events;
-}
-
-function renderCalendar(year,month){
-    const monthLabel = document.getElementById('monthLabel');
-    const calendarGrid = document.getElementById('calendarGrid');
-    calendarGrid.innerHTML = '';
-    const firstOfMonth = new Date(year,month,1);
-    const lastOfMonth = new Date(year,month+1,0);
-    const monthName = firstOfMonth.toLocaleString('es-CO',{month:'long',year:'numeric'});
-    monthLabel.textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
-    const startDay = new Date(firstOfMonth);
-    const dayOfWeek = (startDay.getDay() + 6) % 7;
-    startDay.setDate(startDay.getDate() - dayOfWeek);
-
-    const endDay = new Date(startDay); endDay.setDate(startDay.getDate() + (7*6 -1));
-
-    const events = getEventsInRange(startDay,endDay);
-
-    let cur = new Date(startDay);
-    for(let i=0;i<42;i++){
-        const dayKey = cur.toISOString().slice(0,10);
-        const isOther = cur.getMonth() !== month;
-        const cell = document.createElement('div'); cell.className = 'day-cell' + (isOther? ' other-month':'');
-        const dayNum = document.createElement('div'); dayNum.className='day-num'; dayNum.textContent = cur.getDate(); cell.appendChild(dayNum);
-        const evWrap = document.createElement('div'); evWrap.className='events';
-        const todays = events[dayKey] || [];
-        todays.sort((a,b)=>{ const order={'vencida':0,'hoy':1,'proxima':2,'normal':3}; return order[a.estado]-order[b.estado]; });
-        todays.forEach(ev=>{
-            const pill = document.createElement('div'); pill.className='event-pill';
-            const dot = document.createElement('div'); dot.className='event-dot';
-            if(ev.estado==='vencida') dot.classList.add('dot-vencida'); else if(ev.estado==='hoy') dot.classList.add('dot-hoy'); else dot.classList.add('dot-proxima');
-            const txt = document.createElement('div'); txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}</div>`;
-            pill.appendChild(dot); pill.appendChild(txt);
-            pill.onclick = ()=>{ scrollToLoan(ev.loanId); };
-            evWrap.appendChild(pill);
-        });
-        cell.appendChild(evWrap);
-        if(todays.length>0){ const total = todays.reduce((s,e)=>s+e.valor,0); const tot = document.createElement('div'); tot.className='day-total'; tot.textContent = formatMoney(total); cell.appendChild(tot); }
-        calendarGrid.appendChild(cell); cur.setDate(cur.getDate()+1);
-    }
-    renderGroupings();
-}
-
-/* scroll highlight */
-function scrollToLoan(loanId){
-    const el = document.querySelector(`[data-loan-id='${loanId}']`);
-    if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.boxShadow='0 0 0 3px rgba(99,102,241,0.18)'; setTimeout(()=>{ el.style.boxShadow=''; },1600); }
-}
-
-/* groupings */
-function startOfToday(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
-function getWeekRange(date){ const d=new Date(date); d.setHours(0,0,0,0); const day=(d.getDay()+6)%7; const s=new Date(d); s.setDate(d.getDate()-day); const e=new Date(s); e.setDate(s.getDate()+6); e.setHours(23,59,59,999); return {start:s,end:e}; }
-function getMonthRange(year,month){ const s=new Date(year,month,1); s.setHours(0,0,0,0); const e=new Date(year,month+1,0); e.setHours(23,59,59,999); return {start:s,end:e}; }
-
-function renderGroupings(){
-    const today = startOfToday();
-    const week = getWeekRange(today);
-    const thisMonth = getMonthRange(today.getFullYear(), today.getMonth());
-    const nmDate = new Date(today.getFullYear(), today.getMonth()+1,1);
-    const nextMonth = getMonthRange(nmDate.getFullYear(), nmDate.getMonth());
-    const futureStart = new Date(nextMonth.end); futureStart.setDate(futureStart.getDate()+1); futureStart.setHours(0,0,0,0);
-
-    const groups={ week:[], thisMonth:[], nextMonth:[], future:[] };
-    loans.forEach(loan=>{
-        loan.tabla.forEach(c=>{
-            if(c.pagada) return;
-            const f = new Date(c.fechaCobro); f.setHours(0,0,0,0);
-            if(f>=week.start && f<=week.end) groups.week.push({loan,c});
-            if(f>=thisMonth.start && f<=thisMonth.end) groups.thisMonth.push({loan,c});
-            if(f>=nextMonth.start && f<=nextMonth.end) groups.nextMonth.push({loan,c});
-            if(f>=futureStart) groups.future.push({loan,c});
-        });
-    });
-
-    renderGroupList('groupThisWeek', groups.week);
-    renderGroupList('groupThisMonth', groups.thisMonth);
-    renderGroupList('groupNextMonth', groups.nextMonth);
-    renderGroupList('groupFuture', groups.future);
-}
-
-function renderGroupList(id, items){
-    const container = document.getElementById(id);
-    if(items.length===0){ container.innerHTML = `<div class="small">Sin cobros</div>`; return; }
-    items.sort((a,b)=> new Date(a.c.fechaCobro) - new Date(b.c.fechaCobro));
-    container.innerHTML = items.map(it=>{
-        const estado = (estaVencida(it.c.fechaCobro)?'vencida':(new Date().toISOString().slice(0,10)===it.c.fechaCobro.slice(0,10)?'hoy':(esProxima(it.c.fechaCobro)?'proxima':'normal')));
-        const badge = estado==='vencida'?`<span class="badge badge-vencida">VENCIDA</span>`: estado==='hoy'?`<span class="badge badge-hoy">HOY</span>`: estado==='proxima'?`<span class="badge badge-proxima">PRÓXIMA</span>`:'';
-        return `<div class="group-item" onclick="scrollToLoan(${it.loan.id})"><div style="display:flex;flex-direction:column"><div style="font-weight:800">${it.loan.nombre} — Cuota ${it.c.cuota}</div><div class="small">${formatearFecha(it.c.fechaCobro)}</div></div><div style="text-align:right"><div style="font-weight:800">${formatMoney(it.c.cuotaFija)}</div><div style="margin-top:6px">${badge}</div></div></div>`;
-    }).join('');
-}
-
-/* render loans on right */
-function renderLoans(){
-    const container = document.getElementById('loansContainer');
-    if(loans.length===0){ container.innerHTML = `<div class="loan-card">No hay préstamos</div>`; return; }
-    const ordenados = [...loans].sort((a,b)=>{ 
-        const A=calcularStats(a); 
-        const B=calcularStats(b); 
-        if(A.cuotasVencidas!==B.cuotasVencidas) return B.cuotasVencidas - A.cuotasVencidas; 
-        if(A.proximaCuota && B.proximaCuota) return new Date(A.proximaCuota.fechaCobro) - new Date(B.proximaCuota.fechaCobro); 
-        return 0; 
-    });
-    
-    container.innerHTML = ordenados.map(loan=>{
-        const s = calcularStats(loan);
-        const esSoloInteres = loan.tipo === 'solo_interes'; // NUEVO
-        const tipoLabel = esSoloInteres ? '<span class="badge badge-proxima">SOLO INTERÉS</span>' : ''; // NUEVO
-        const botonesExtra = esSoloInteres ? `<button class="btn" style="background:#7c3aed;color:white" onclick="generarInteresMensual(${loan.id})">+ Generar Interés</button>` : ''; // NUEVO
-        
-        return `<div class="loan-card" data-loan-id="${loan.id}">
-            <div class="loan-header">
-                <div>
-                    <div class="cliente-nombre" style="font-weight:800;font-size:15px">${loan.nombre} ${tipoLabel}</div>
-                    <div class="small">
-                        <span id="fechaPrestamo-${loan.id}">Prestado: ${formatearFecha(loan.fechaPrestamo)}</span>
-                        <button class="btn" onclick="editarFechaPrestamo(${loan.id}, '${loan.fechaPrestamo}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
-                        ${loan.diaCobro? ' • Día cobro: '+loan.diaCobro : ''}
+        <div class="layout">
+            <!-- Loans Section - Full Width -->
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                    <h3 style="margin:0;color:#0f172a">Préstamos</h3>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn" onclick="renderLoans()">Ordenar / Actualizar</button>
                     </div>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center">
-                    ${botonesExtra}
-                    <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
-                    <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
+
+                <!-- Search Container -->
+                <div class="search-container">
+                    <input id="searchInput" type="text" oninput="filtrarClientes()" placeholder="Buscar cliente por nombre, documento o número de préstamo...">
+                    <span class="icon-search">🔍</span>
+                </div>
+
+                <div class="loans-list" id="loansContainer"></div>
+
+                <div class="groups" style="margin-top:12px">
+                    <div class="group-card"><h4>📅 Cobros de esta semana</h4><div class="group-list" id="groupThisWeek"></div></div>
+                    <div class="group-card"><h4>🗓️ Cobros del mes actual</h4><div class="group-list" id="groupThisMonth"></div></div>
+                    <div class="group-card"><h4>📆 Cobros del próximo mes</h4><div class="group-list" id="groupNextMonth"></div></div>
+                    <div class="group-card"><h4>🔮 Cobros futuros</h4><div class="group-list" id="groupFuture"></div></div>
                 </div>
             </div>
-            <div class="loan-info" style="margin-top:10px">
-                <div><div class="small">Monto</div><div style="font-weight:800">${formatMoney(loan.monto)}</div></div>
-                <div><div class="small">Capital restante</div><div style="font-weight:800;color:#ef4444">${formatMoney(s.capitalRestante)}</div></div>
-                <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(loan.cuotaFija)}</div></div>
-                <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados)}</div></div>
+
+            <!-- Calendar + Reports Section -->
+            <div>
+                <div class="calendar">
+                    <div class="cal-header">
+                        <div class="cal-controls">
+                            <button class="btn" id="prevMonth"><</button>
+                            <div class="month-label" id="monthLabel">Mes Año</div>
+                            <button class="btn" id="nextMonth">></button>
+                            <button class="btn" id="todayBtn">Hoy</button>
+                        </div>
+                        <div class="flex-row">
+                            <button class="btn btn-primary" onclick="renderCalendar(currentYear,currentMonth)">Refrescar</button>
+                        </div>
+                    </div>
+
+                    <div class="cal-grid" id="weekdayHeader" style="margin-bottom:8px">
+                        <div class="weekday">Lun</div><div class="weekday">Mar</div><div class="weekday">Mié</div>
+                        <div class="weekday">Jue</div><div class="weekday">Vie</div><div class="weekday">Sáb</div><div class="weekday">Dom</div>
+                    </div>
+
+                    <div class="cal-grid" id="calendarGrid"></div>
+                </div>
+
+                <div class="reports">
+                    <div class="report-card">
+                        <h4>📊 Reporte mensual — Comparativo</h4>
+                        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                            <div class="small">Mes actual:</div>
+                            <select id="reportMonthSelector" onchange="renderMonthlyReport()"></select>
+                            <div class="small">Año:</div>
+                            <select id="reportYearSelector" onchange="renderMonthlyReport()"></select>
+                            <button class="btn" onclick="renderMonthlyReport()">Aplicar</button>
+                        </div>
+
+                        <table class="table" style="margin-top:10px">
+                            <thead>
+                                <tr><th>Concepto</th><th>Mes Actual</th><th>Mes Pasado</th></tr>
+                            </thead>
+                            <tbody id="monthlyReportBody">
+                                <tr><td>Total (Capital+Interés)</td><td id="r_total_current">$0</td><td id="r_total_prev">$0</td></tr>
+                                <tr><td>Solo Intereses</td><td id="r_interest_current">$0</td><td id="r_interest_prev">$0</td></tr>
+                                <tr><td>Variación %</td><td id="r_variation">0%</td><td></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="report-card">
+                        <h4>📈 Flujo proyectado (12 meses)</h4>
+                        <div class="small" style="margin-bottom:8px">Proyección de ingresos (capital + interés) por mes según cuotas programadas.</div>
+                        <div class="mountain" id="projectedMountain"></div>
+                        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#475569" id="projLabels"></div>
+                    </div>
+
+                    <div class="report-card" style="grid-column:1/ -1">
+                        <h4>📊 Intereses cobrados por mes (histórico)</h4>
+                        <table class="table" id="interestsTable">
+                            <thead><tr><th>Mes</th><th>Intereses cobrados (pagados)</th></tr></thead>
+                            <tbody id="interestsBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="report-card">
+                        <h4>👥 Historial de pagos — Comportamiento</h4>
+                        <div class="small" style="margin-bottom:8px">Lista rápida: % a tiempo — clientes que pagan bien vs. los que atrasan.</div>
+                        <div class="client-list" id="clientHistoryList"></div>
+                    </div>
+                </div>
             </div>
-            <div style="margin-top:10px;font-size:13px">${s.proximaCuota?`<div>Próximo: ${formatearFecha(s.proximaCuota.fechaCobro)} ${estaVencida(s.proximaCuota.fechaCobro)?'<span class="badge badge-vencida">VENCIDA</span>':''} ${esProxima(s.proximaCuota.fechaCobro)?'<span class="badge badge-proxima">PRÓXIMA</span>':''}</div>`:''}${s.cuotasVencidas>0?`<div style="margin-top:6px"><strong style="color:#ef4444">⚠️ ${s.cuotasVencidas} cuota(s) vencida(s)</strong></div>`:''}</div>
-            <div style="margin-top:10px">
-                <table style="width:100%;border-collapse:collapse;font-size:13px">
-                    <thead>
-                        <tr style="text-align:left;color:#475569">
-                            <th style="padding:6px">✓</th>
-                            <th style="padding:6px">#</th>
-                            <th style="padding:6px">Fecha</th>
-                            <th style="padding:6px">${esSoloInteres ? 'Interés' : 'Cuota'}</th>
-                            <th style="padding:6px">Interés</th>
-                            ${esSoloInteres ? '' : '<th style="padding:6px">Capital</th>'}
-                            <th style="padding:6px">Saldo</th>
-                            <th style="padding:6px">Multa 10%</th>
-                            <th style="padding:6px">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${loan.tabla.map((c,i)=>{
-                            const vencida=!c.pagada && estaVencida(c.fechaCobro);
-                            const multa = c.cuotaFija * 0.10;
-                            const puedePagarMulta = !c.pagada && !c.multaPagada;
-                            const puedePagarConExcedente = !c.pagada;
-                            
-                            return `<tr style="background:${c.pagada? '#d1fae5' : vencida ? '#fee2e2' : 'transparent'}">
-                                <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${i})" style="border-radius:999px;padding:6px 8px">${c.pagada? '✓':'○'}</button></td>
-                                <td style="padding:6px">${c.cuota}</td>
-                                <td style="padding:6px">
-                                    <span id="fechaCobro-${loan.id}-${i}">${formatearFecha(c.fechaCobro)}</span>
-                                    <button class="btn" onclick="editarFechaCobro(${loan.id}, ${i}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
-                                    ${c.pagada? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>':''}
-                                </td>
-                                <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
-                                <td style="padding:6px">${formatMoney(c.interes)}</td>
-                                ${esSoloInteres ? '' : `<td style="padding:6px">${formatMoney(c.abonoCapital)}</td>`}
-                                <td style="padding:6px"><strong>${formatMoney(c.saldo)}</strong></td>
-                                <td style="padding:6px">
-                                    ${c.multaPagada ?
-                                        `<span style="color:#10b981;font-weight:bold">✓ ${formatMoney(c.multa)}</span>
-                                         <div style="font-size:11px;color:#64748b">Pagada: ${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
-                                        :
-                                        `<span style="color:#f59e0b">${formatMoney(multa)}</span>`
-                                    }
-                                </td>
-                                <td style="padding:6px">
-                                    <div style="display:flex;flex-direction:column;gap:4px">
-                                        ${puedePagarMulta ?
-                                            `<button class="btn" onclick="pagarMulta10Porciento(${loan.id},${i})" style="background:#f59e0b;color:white;font-size:11px;padding:4px 8px">Pagar multa 10%</button>`
-                                            : ''
-                                        }
-                                        ${puedePagarConExcedente ?
-                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${i})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar + Excedente (Auto-Ajuste)</button>`
-                                            : ''
-                                        }
-                                    </div>
-                                </td>
-                            </tr>`;
-                        }).join('')}
-                    </tbody>
-                </table>
+        </div>
+
+        <!-- Payment Modal -->
+        <div id="paymentModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h3>Pagar Cuota con Excedente (Modificación Automática)</h3>
+                <div class="form-group">
+                    <label>Cliente:</label>
+                    <input id="modalClientName" type="text" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Cuota #:</label>
+                    <input id="modalCuotaNumber" type="text" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Valor Cuota:</label>
+                    <input id="modalCuotaValue" type="text" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Pago Recibido:</label>
+                    <input id="modalPagoRecibido" type="number" placeholder="Ingrese el monto recibido">
+                </div>
+                <div class="form-group">
+                    <label>Modo de Recálculo:</label>
+                    <select id="modalRecalculoMode">
+                        <option value="A">A - Reducir valor cuotas (mantener número)</option>
+                        <option value="B">B - Reducir número cuotas (mantener valor)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Excedente:</label>
+                    <input id="modalExcedente" type="text" readonly style="background:#f3f4f6;color:#6b7280">
+                </div>
+                <div class="form-group">
+                    <label>Efecto en cuotas futuras:</label>
+                    <div style="background:#f3f4f6;color:#6b7280;padding:8px;border-radius:6px;font-size:12px;margin-bottom:10px;">
+                        El excedente se aplicará automáticamente al capital pendiente y modificará las cuotas futuras según el modo seleccionado.
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-cancel" onclick="cerrarModalPago()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="confirmarPagoExcedente()">Confirmar Pago</button>
+                </div>
             </div>
-        </div>`;
-    }).join('');
-}
-
-/* ========== NEW FEATURES: Reports, projected cashflow, client history, interests by month ========== */
-
-/* Helper: format month label YYYY-MM */
-function ymKey(date){ const d=new Date(date); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
-function monthLabelFromKey(key){ const [y,m]=key.split('-'); const d=new Date(y, parseInt(m)-1,1); return d.toLocaleString('es-CO',{month:'short', year:'numeric'}); }
-
-/* 1) Monthly report (table B) */
-function computeMonthlyReport(year, month){
-    // month: 0-based
-    const start = new Date(year, month, 1); start.setHours(0,0,0,0);
-    const end = new Date(year, month+1, 0); end.setHours(23,59,59,999);
-    const prevStart = new Date(year, month-1, 1); prevStart.setHours(0,0,0,0);
-    const prevEnd = new Date(year, month, 0); prevEnd.setHours(23,59,59,999);
-
-    // For "this month" we consider cuotas with fechaCobro within the month.
-    // For totals we count both paid and unpaid (projected amounts), but for "intereses" we will show only paid interests separately.
-    let totalThis=0, interestThis=0;
-    let totalPrev=0, interestPrev=0;
-
-    loans.forEach(loan=>{
-        loan.tabla.forEach(c=>{
-            const f = new Date(c.fechaCobro);
-            if(f>=start && f<=end){
-                totalThis += c.cuotaFija;
-                if(c.pagada) interestThis += c.interes;
-            }
-            if(f>=prevStart && f<=prevEnd){
-                totalPrev += c.cuotaFija;
-                if(c.pagada) interestPrev += c.interes;
-            }
-        });
-    });
-
-    return { totalThis, interestThis, totalPrev, interestPrev };
-}
-
-function populateMonthYearSelectors(){
-    const now = new Date();
-    const monthSel = document.getElementById('reportMonthSelector');
-    const yearSel = document.getElementById('reportYearSelector');
-    monthSel.innerHTML=''; yearSel.innerHTML='';
-    for(let m=0;m<12;m++){
-        const opt = document.createElement('option'); opt.value=m; opt.textContent=new Date(0,m,1).toLocaleString('es-CO',{month:'long'}); if(m===now.getMonth()) opt.selected=true;
-        monthSel.appendChild(opt);
-    }
-    const startYear = now.getFullYear()-3;
-    for(let y=startYear;y<=now.getFullYear()+1;y++){
-        const opt = document.createElement('option'); opt.value=y; opt.textContent=y; if(y===now.getFullYear()) opt.selected=true; yearSel.appendChild(opt);
-    }
-}
-
-function renderMonthlyReport(){
-    const month = parseInt(document.getElementById('reportMonthSelector').value);
-    const year = parseInt(document.getElementById('reportYearSelector').value);
-    const res = computeMonthlyReport(year, month);
-    document.getElementById('r_total_current').textContent = formatMoney(res.totalThis);
-    document.getElementById('r_total_prev').textContent = formatMoney(res.totalPrev);
-    document.getElementById('r_interest_current').textContent = formatMoney(res.interestThis);
-    document.getElementById('r_interest_prev').textContent = formatMoney(res.interestPrev);
-    // variation percent (total)
-    const varPct = res.totalPrev===0? '—' : (((res.totalThis - res.totalPrev)/res.totalPrev)*100).toFixed(1)+'%';
-    document.getElementById('r_variation').textContent = varPct;
-}
-
-/* 2) Projected cashflow (mountain chart) — B: CSS bars
-   We'll compute projected total per next 12 months starting from selected month */
-function computeProjectedCashflow(startYear, startMonth, months=12){
-    const res = {};
-    for(let i=0;i<months;i++){
-        const d = new Date(startYear, startMonth + i, 1);
-        const key = ymKey(d);
-        res[key]=0;
-    }
-    // Sum cuotaFija for all cuotas (paid or unpaid) whose fechaCobro falls in those months
-    loans.forEach(loan=>{
-        loan.tabla.forEach(c=>{
-            const f = new Date(c.fechaCobro);
-            const key = ymKey(f);
-            if(res.hasOwnProperty(key)) res[key]+= c.cuotaFija;
-        });
-    });
-    return res;
-}
-
-function renderProjectedMountain(){
-    const start = new Date(currentYear, currentMonth, 1);
-    const data = computeProjectedCashflow(start.getFullYear(), start.getMonth(), 12);
-    const container = document.getElementById('projectedMountain'); container.innerHTML='';
-    const labels = document.getElementById('projLabels'); labels.innerHTML='';
-    const values = Object.values(data);
-    const max = Math.max(...values,1);
-    Object.keys(data).forEach(key=>{
-        const val = data[key];
-        const heightPct = Math.round((val / max) * 100);
-        const barWrap = document.createElement('div'); barWrap.className='bar';
-        const bar = document.createElement('div'); bar.style.height = heightPct + '%';
-        bar.title = `${monthLabelFromKey(key)}: ${formatMoney(val)}`;
-        barWrap.appendChild(bar);
-        container.appendChild(barWrap);
-        const lbl = document.createElement('div'); lbl.style.width='100%'; lbl.style.textAlign='center'; lbl.style.fontSize='11px'; lbl.style.color='#475569'; lbl.textContent = monthLabelFromKey(key).split(' ')[0];
-        labels.appendChild(lbl);
-    });
-}
-
-/* 3) Interests per month (only from paid quotas) */
-function computeInterestsByMonth(monthsBack=12){
-    const map = {};
-    const now = new Date();
-    for(let i=monthsBack-1;i>=0;i--){
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        map[ymKey(d)] = 0;
-    }
-    loans.forEach(loan=>{
-        loan.tabla.forEach(c=>{
-            if(!c.pagada) return;
-            const f = new Date(c.fechaPago || c.fechaCobro);
-            const key = ymKey(f);
-            if(map.hasOwnProperty(key)) map[key] += c.interes;
-        });
-    });
-    return map;
-}
-
-function renderInterestsTable(){
-    const data = computeInterestsByMonth(12);
-    const tbody = document.getElementById('interestsBody'); tbody.innerHTML='';
-    Object.keys(data).forEach(k=>{
-        const tr = document.createElement('tr');
-        const td1 = document.createElement('td'); td1.textContent = monthLabelFromKey(k);
-        const td2 = document.createElement('td'); td2.textContent = formatMoney(data[k]);
-        tr.appendChild(td1); tr.appendChild(td2); tbody.appendChild(tr);
-    });
-}
-
-/* 4) Client payment history (simple labels — A) */
-function computeClientHistory(){
-    // For each client, compute: total quotas, paid quotas, paid on time count, average days late
-    const clients = {};
-    loans.forEach(loan=>{
-        const name = loan.nombre;
-        if(!clients[name]) clients[name] = { total:0, paid:0, onTime:0, lateDaysSum:0, lateCount:0, vencidas:0 };
-        loan.tabla.forEach(c=>{
-            clients[name].total +=1;
-            if(c.pagada){
-                clients[name].paid +=1;
-                const due = new Date(c.fechaCobro); due.setHours(0,0,0,0);
-                const paid = new Date(c.fechaPago); paid.setHours(0,0,0,0);
-                const diffDays = Math.round((paid - due)/86400000);
-                if(diffDays <= 0) clients[name].onTime +=1;
-                else { clients[name].lateDaysSum += diffDays; clients[name].lateCount +=1; }
-            } else {
-                if(estaVencida(c.fechaCobro)) clients[name].vencidas +=1;
-            }
-        });
-    });
-    // build summary array
-    const arr = Object.keys(clients).map(name=>{
-        const c = clients[name];
-        const pctOnTime = c.paid === 0 ? 0 : Math.round((c.onTime / c.paid) * 100);
-        const avgLate = c.lateCount ===0 ? 0 : Math.round(c.lateDaysSum / c.lateCount);
-        return { name, total: c.total, paid: c.paid, pctOnTime, avgLate, vencidas: c.vencidas };
-    });
-    // sort: worst payers first by pctOnTime ascending
-    arr.sort((a,b)=> a.pctOnTime - b.pctOnTime);
-    return arr;
-}
-
-function renderClientHistory(){
-    const list = computeClientHistory();
-    const container = document.getElementById('clientHistoryList'); container.innerHTML='';
-    if(list.length===0){ container.innerHTML = '<div class="small">Sin datos</div>'; return; }
-    list.forEach(c=>{
-        let tag = '';
-        if(c.pctOnTime >= 90) tag = `<span class="badge badge-hoy">CUMPLIDO ${c.pctOnTime}%</span>`;
-        else if(c.pctOnTime >= 60) tag = `<span class="badge badge-proxima">REGULAR ${c.pctOnTime}%</span>`;
-        else tag = `<span class="badge badge-vencida">ATRASADO ${c.pctOnTime}%</span>`;
-        const item = document.createElement('div'); item.className='client-item';
-        item.innerHTML = `<div style="display:flex;flex-direction:column"><div style="font-weight:800">${c.name}</div><div class="small">Pagadas: ${c.paid}/${c.total} • Días atraso prom.: ${c.avgLate} • Vencidas: ${c.vencidas}</div></div><div>${tag}</div>`;
-        container.appendChild(item);
-    });
-}
-
-/* Initialize selectors and renderers */
-function initReportSelectors(){
-    populateMonthYearSelectors();
-    renderMonthlyReport();
-    renderProjectedMountain();
-    renderInterestsTable();
-    renderClientHistory();
-}
-
-/* Render all */
-function renderAll(){ actualizarEstadisticas(); renderLoans(); renderCalendar(currentYear,currentMonth); initReportSelectors(); }
-
-/* Initialize load */
-cargarDatos();
-
-/* If empty, render with defaults */
-renderCalendar(currentYear,currentMonth);
-
-async function generarInteresMensual(id){
-    const loan = loans.find(l=>l.id===id);
-    if(!loan) return;
-    if(loan.tipo!=="solo_interes"){
-        alert("No es préstamo solo intereses");
-        return;
-    }
-    
-    // Calcular la fecha del próximo cobro
-    let fechaCobro;
-    if(loan.tabla.length === 0){
-        // Primera cuota
-        fechaCobro = calcularFechaCuota(loan.fechaPrestamo, 1, loan.diaCobro);
-    } else {
-        // Siguiente cuota basada en la última
-        const ultimaCuota = loan.tabla[loan.tabla.length - 1];
-        const ultimaFecha = new Date(ultimaCuota.fechaCobro);
-        fechaCobro = calcularFechaCuota(ultimaFecha.toISOString().slice(0,10), 1, loan.diaCobro);
-    }
-    
-    const interes = loan.monto * (loan.tasa/100);
-    loan.tabla.push({
-        cuota: loan.tabla.length + 1,
-        fechaCobro: fechaCobro.toISOString(),
-        cuotaFija: interes,
-        interes: interes,
-        abonoCapital: 0,
-        saldo: loan.monto,
-        pagada: false,
-        fechaPago: null,
-        multa: 0,
-        multaPagada: false,
-        fechaPagoMulta: null
-    });
-    
-    await guardarCambios(loan);
-    renderAll();
-    alert(`Interés mensual generado: ${formatMoney(interes)}\nFecha de cobro: ${formatearFecha(fechaCobro)}`);
-}
-
-/* ================= DATE EDITING FUNCTIONALITY ================= */
-
-let currentDateEdit = {};
-
-function editarFechaPrestamo(loanId, fechaActual) {
-    const loan = loans.find(l => l.id === loanId);
-    if (!loan) return;
-    
-    currentDateEdit = {
-        type: 'prestamo',
-        loanId: loanId,
-        loan: loan,
-        fechaActual: fechaActual
-    };
-    
-    document.getElementById('dateEditTitle').textContent = 'Editar Fecha de Préstamo';
-    document.getElementById('dateEditLabel').textContent = 'Nueva fecha de préstamo:';
-    document.getElementById('dateEditInput').value = fechaActual;
-    document.getElementById('dateEditModal').style.display = 'flex';
-    document.getElementById('recalcularCuotas').checked = true;
-    document.getElementById('recalcularCuotas').disabled = false;
-}
-
-function editarFechaCobro(loanId, cuotaIndex, fechaActual) {
-    const loan = loans.find(l => l.id === loanId);
-    if (!loan) return;
-    
-    const cuota = loan.tabla[cuotaIndex];
-    if (!cuota) return;
-    
-    currentDateEdit = {
-        type: 'cobro',
-        loanId: loanId,
-        loan: loan,
-        cuotaIndex: cuotaIndex,
-        cuota: cuota,
-        fechaActual: fechaActual
-    };
-    
-    document.getElementById('dateEditTitle').textContent = `Editar Fecha de Cobro - Cuota #${cuota.cuota}`;
-    document.getElementById('dateEditLabel').textContent = 'Nueva fecha de cobro:';
-    document.getElementById('dateEditInput').value = fechaActual.slice(0, 10);
-    document.getElementById('dateEditModal').style.display = 'flex';
-    document.getElementById('recalcularCuotas').checked = false;
-    document.getElementById('recalcularCuotas').disabled = true;
-}
-
-function cerrarModalEdicionFecha() {
-    document.getElementById('dateEditModal').style.display = 'none';
-    currentDateEdit = {};
-}
-
-async function confirmarEdicionFecha() {
-    const nuevaFecha = document.getElementById('dateEditInput').value;
-    const recalcular = document.getElementById('recalcularCuotas').checked;
-    
-    if (!nuevaFecha) {
-        alert('Por favor seleccione una fecha válida');
-        return;
-    }
-    
-    if (currentDateEdit.type === 'prestamo') {
-        // Editar fecha de préstamo
-        currentDateEdit.loan.fechaPrestamo = nuevaFecha;
-        
-        if (recalcular && currentDateEdit.loan.tipo === 'cuotas_fijas') {
-            // Recalcular toda la tabla de amortización
-            recalcularTablaAmortizacion(currentDateEdit.loan);
-        }
-        
-        // Actualizar display
-        document.getElementById(`fechaPrestamo-${currentDateEdit.loanId}`).textContent =
-            `Prestado: ${formatearFecha(nuevaFecha)}`;
-            
-    } else if (currentDateEdit.type === 'cobro') {
-        // Editar fecha de cobro individual
-        currentDateEdit.cuota.fechaCobro = new Date(nuevaFecha).toISOString();
-        
-        // Actualizar display
-        document.getElementById(`fechaCobro-${currentDateEdit.loanId}-${currentDateEdit.cuotaIndex}`).textContent =
-            formatearFecha(nuevaFecha);
-    }
-    
-    await guardarCambios(currentDateEdit.loan);
-    renderAll();
-    cerrarModalEdicionFecha();
-
-    alert('Fecha actualizada correctamente');
-}
-
-function recalcularTablaAmortizacion(loan) {
-    if (loan.tipo !== 'cuotas_fijas') return;
-    
-    // Recrear la tabla completa con las nuevas fechas
-    const nuevaTabla = [];
-    const tasaMensual = loan.tasa / 100;
-    let saldo = loan.monto;
-    
-    for (let n = 1; n <= loan.cuotas; n++) {
-        const fechaCobro = calcularFechaCuota(loan.fechaPrestamo, n, loan.diaCobro);
-        const interes = saldo * tasaMensual;
-        const abono = loan.cuotaFija - interes;
-        saldo = Math.max(0, saldo - abono);
-        
-        // Mantener el estado de pago de cuotas existentes si coincide el número
-        const cuotaExistente = loan.tabla.find(c => c.cuota === n);
-        
-        nuevaTabla.push({
-            cuota: n,
-            cuotaFija: loan.cuotaFija,
-            interes: interes,
-            abonoCapital: abono,
-            saldo: saldo,
-            fechaCobro: fechaCobro.toISOString(),
-            pagada: cuotaExistente ? cuotaExistente.pagada : false,
-            fechaPago: cuotaExistente ? cuotaExistente.fechaPago : null,
-            multa: cuotaExistente ? cuotaExistente.multa : 0,
-            multaPagada: cuotaExistente ? cuotaExistente.multaPagada : false,
-            fechaPagoMulta: cuotaExistente ? cuotaExistente.fechaPagoMulta : null
-        });
-    }
-    
-    loan.tabla = nuevaTabla;
-}
-
-/* ================= PAYMENT WITH EXCESS FUNCTIONALITY ================= */
-
-let currentPaymentData = {};
-
-function abrirModalPagoExcedente(loanId, cuotaIndex){
-    const loan = loans.find(l=>l.id===loanId);
-    if(!loan) return;
-    
-    const cuota = loan.tabla[cuotaIndex];
-    if(cuota.pagada){
-        alert("Esta cuota ya está marcada como pagada");
-        return;
-    }
-    
-    currentPaymentData = { loanId, cuotaIndex, loan, cuota };
-    
-    // Fill modal data
-    document.getElementById('modalClientName').value = loan.nombre;
-    document.getElementById('modalCuotaNumber').value = cuota.cuota;
-    document.getElementById('modalCuotaValue').value = formatMoney(cuota.cuotaFija);
-    document.getElementById('modalPagoRecibido').value = '';
-    document.getElementById('modalExcedente').value = '$0';
-    document.getElementById('modalRecalculoMode').value = 'A';
-    
-    // Show modal
-    document.getElementById('paymentModal').style.display = 'flex';
-    
-    // Add event listener for payment amount change
-    document.getElementById('modalPagoRecibido').oninput = function(){
-        const pagoRecibido = parseFloat(this.value) || 0;
-        const excedente = pagoRecibido - cuota.cuotaFija;
-        document.getElementById('modalExcedente').value = excedente > 0 ? formatMoney(excedente) : '$0';
-    };
-}
-
-function cerrarModalPago(){
-    document.getElementById('paymentModal').style.display = 'none';
-    currentPaymentData = {};
-}
-
-function confirmarPagoExcedente(){
-    const pagoRecibido = parseFloat(document.getElementById('modalPagoRecibido').value);
-    const recalculoMode = document.getElementById('modalRecalculoMode').value;
-    
-    if(!pagoRecibido || pagoRecibido <= 0){
-        alert("Ingrese un monto válido");
-        return;
-    }
-    
-    if(pagoRecibido < currentPaymentData.cuota.cuotaFija){
-        alert("El pago debe ser mayor o igual al valor de la cuota");
-        return;
-    }
-    
-    pagarCuotaConExcedente(currentPaymentData.loanId, currentPaymentData.cuota.cuota, pagoRecibido, recalculoMode);
-    cerrarModalPago();
-}
-
-// Función que procesa el pago (marcar cuota pagada y aplicar excedente correctamente)
-async function pagarCuotaConExcedente(idPrestamo, numeroCuota, pagoReal, modoRecalculo){
-    const loan = loans.find(l => l.id === idPrestamo);
-    if(!loan) return;
-
-    const cuota = loan.tabla.find(c => c.cuota === numeroCuota);
-    if(!cuota) return;
-    if(cuota.pagada){
-        alert('La cuota ya está pagada.');
-        return;
-    }
-
-    const excedente = Math.max(0, pagoReal - cuota.cuotaFija);
-    const hoyISO = new Date().toISOString();
-
-    // 1) Calcular capitalPagado antes de esta cuota (excluyendo la cuota actual)
-    const capitalPagadoAntes = loan.tabla
-        .filter(c => c.pagada && c.cuota !== cuota.cuota)
-        .reduce((s, c) => s + (c.abonoCapital || 0), 0);
-
-    // 2) Ajustar abonoCapital de la cuota actual:
-    //    mantenemos el abonoCapital original y le sumamos el excedente aplicado a capital (si aplica)
-    const abonoOriginal = cuota.abonoCapital || 0;
-    // máximo que puede aplicarse al capital = monto - capitalPagadoAntes - abonoOriginal
-    const maxAplicable = Math.max(0, loan.monto - capitalPagadoAntes - abonoOriginal);
-    const aplicacionExcedente = Math.min(excedente, maxAplicable);
-
-    cuota.abonoCapital = abonoOriginal + aplicacionExcedente;
-    // actualizar saldo inmediatamente después de esta cuota
-    const capitalPagadoDespues = capitalPagadoAntes + cuota.abonoCapital;
-    cuota.saldo = Math.max(0, loan.monto - capitalPagadoDespues);
-
-    // 3) Marcar cuota como pagada y registrar fecha
-    cuota.pagada = true;
-    cuota.fechaPago = hoyISO;
-
-    // 4) Si hay excedente restante que no se pudo aplicar al capital (por ejemplo, sobrepago total),
-    //    lo dejamos en 0 (o podrías registrarlo como saldo a favor). Aquí lo ignoramos porque se aplicó lo máximo posible.
-    //    ya aplicamos la parte que reduce capital. Si quieres, guardamos excedenteTotal = excedente - aplicacionExcedente.
-
-    // 5) Recalcular capitalPendiente basado en abonos totales actuales
-    const capitalPagadoTotal = loan.tabla.filter(c => c.pagada).reduce((s,c) => s + (c.abonoCapital || 0), 0);
-    loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoTotal);
-
-    // 6) Recalcular cuotas futuras según el modo
-    await recalcularCuotas(loan, modoRecalculo);
-
-    await guardarCambios(loan);
-    renderAll();
-
-    const mensaje = aplicacionExcedente > 0 ?
-        `Cuota pagada. Se aplicaron ${formatMoney(aplicacionExcedente)} al capital. Cuotas futuras recalculadas.` :
-        'Cuota pagada correctamente (sin excedente aplicable al capital).';
-
-    alert(mensaje);
-}
-
-// Recalcula las cuotas pendientes de un préstamo según modo A o B.
-// - Modo A: mantener número de cuotas pendientes y recalcular valor de cuota.
-// - Modo B: mantener valor de cuota y reducir número de cuotas (rebuild hasta saldo = 0).
-async function recalcularCuotas(loan, modo){
-    // Si es préstamo tipo solo_interes -> actualizar los importes de interés mensuales (cada cuota = capitalPendiente * tasa)
-    if(loan.tipo === 'solo_interes'){
-        const tasaMensual = loan.tasa / 100;
-        // Recalcular cada cuota no pagada: cuotaFija = capitalPendiente * tasa
-        // Mantendremos el saldo como el capitalPendiente (no varía hasta pago de capital)
-        let saldoActual = loan.capitalPendiente;
-        loan.tabla = loan.tabla.map(c => {
-            if(c.pagada) return c;
-            const nuevaCuota = Math.round(saldoActual * tasaMensual);
-            return {
-                ...c,
-                cuotaFija: nuevaCuota,
-                interes: nuevaCuota,
-                abonoCapital: 0,
-                saldo: saldoActual
-            };
-        });
-        await guardarCambios(loan);
-        return;
-    }
-
-    // Para préstamos de cuotas fijas:
-    // 1) identificar las cuotas ya pagadas y las pendientes (ordenadas por número)
-    const pagadas = loan.tabla.filter(c => c.pagada).sort((a,b) => a.cuota - b.cuota);
-    const pendientes = loan.tabla.filter(c => !c.pagada).sort((a,b) => a.cuota - b.cuota);
-
-    // si no hay pendientes, nada que hacer
-    if(pendientes.length === 0){
-        // asegurarse capitalPendiente correct
-        const capitalPagado = pagadas.reduce((s,c) => s + (c.abonoCapital || 0), 0);
-        loan.capitalPendiente = Math.max(0, loan.monto - capitalPagado);
-        await guardarCambios(loan);
-        return;
-    }
-
-    const tasaMensual = loan.tasa / 100;
-    // recalcular capital pendiente actual (ya incluye la cuota que pagamos con excedente)
-    const capitalPagado = pagadas.reduce((s,c) => s + (c.abonoCapital || 0), 0);
-    let saldo = Math.max(0, loan.monto - capitalPagado);
-    loan.capitalPendiente = saldo;
-
-    if(modo === 'A'){
-        // Modo A: mantener número de cuotas pendientes -> recalcular nuevo valor de cuota
-        const cuotasRestantes = pendientes.length;
-        // Si saldo es 0, eliminar pendientes
-        if(saldo <= 0){
-            // marcar pendientes con saldo 0
-            pendientes.forEach((c) => {
-                c.cuotaFija = 0;
-                c.interes = 0;
-                c.abonoCapital = 0;
-                c.saldo = 0;
-            });
-            // actualizar tabla: conservar pagadas + pendientes modificadas
-            loan.tabla = [...pagadas, ...pendientes];
-            await guardarCambios(loan);
-            return;
-        }
-
-        // calcular nueva cuota fija (redondear a entero)
-        const nuevaCuota = calcularCuotaFija(saldo, loan.tasa, cuotasRestantes);
-
-        // actualizar cada cuota pendiente con el nuevo plan
-        let saldoAux = saldo;
-        for(let i=0;i<cuotasRestantes;i++){
-            const c = pendientes[i];
-            const interes = saldoAux * tasaMensual;
-            const abono = nuevaCuota - interes;
-            // evitar abonos negativos
-            const abonoReal = Math.max(0, abono);
-            saldoAux = Math.max(0, saldoAux - abonoReal);
-
-            c.cuotaFija = nuevaCuota;
-            c.interes = interes;
-            c.abonoCapital = abonoReal;
-            c.saldo = saldoAux;
-            // NOTA: no tocamos c.pagada ni c.fechaPago
-        }
-
-        // reconstruir tabla conservando pagadas en su posición original si deseas
-        // Para simplicidad, reordenamos por número de cuota:
-        // Mantener numeración original => actualizar pendientes (no cambiamos número ni fecha)
-        const pendientesMap = Object.fromEntries(pendientes.map(p => [p.cuota, p]));
-        loan.tabla = loan.tabla.map(c => c.pagada ? c : pendientesMap[c.cuota]);
-
-    } else if(modo === 'B'){
-        // Modo B: mantener valor de cuota y reducir número de cuotas necesarias
-        // Tomamos como cuota objetivo el valor actual de cuotaFija de loan (o de la primera pendiente)
-        const valorCuotaTarget = loan.cuotaFija || pendientes[0].cuotaFija || calcularCuotaFija(saldo, loan.tasa, pendientes.length);
-
-        // Reconstruir la lista de pendientes a partir de la primera cuota pendiente:
-        // - generamos tantas cuotas como sean necesarias manteniendo valorCuotaTarget hasta que saldo llegue a 0
-
-        // Determinar fecha de la primera cuota que queda pendiente
-        // Usaremos la fecha de la primera cuota pendiente como base para secuenciar siguientes fechas
-        const primeraPendiente = pendientes[0];
-        let fechaBase = new Date(primeraPendiente.fechaCobro); // ISO -> Date
-        // Calcular nuevas cuotas
-        const nuevasPendientes = [];
-        let saldoAux = saldo;
-        let contadorMes = 0;
-        let numeroBase = primeraPendiente.cuota; // conservar numeración a partir de la primera pendiente
-        while(saldoAux > 0){
-            // calcular interes para el periodo
-            const interes = saldoAux * tasaMensual;
-            let abono = valorCuotaTarget - interes;
-            if(abono < 0) {
-                // si el interés es mayor al valor de cuota objetivo -> no puede pagarse capital (muy raro),
-                // en ese caso incrementamos el valor de la cuota objetivo (evitar bucle infinito)
-                // recalculamos valorCuotaTarget con un mínimo lógico
-                const nuevaCuotaMin = Math.ceil(interes + 1);
-                // asignamos y recalculamos abono
-                if(nuevaCuotaMin > valorCuotaTarget) {
-                    // re-asignamos
-                    // Nota: aquí estamos cambiando el valor objetivo para que el plan sea factible
-                    // Esto solo ocurre si la tasa es extremadamente alta o cuota objetivo muy baja.
-                }
-                abono = Math.max(0, nuevaCuotaMin - interes);
-            }
-
-            // si abono es mayor al saldo restante, ajustar la última cuota
-            if(abono >= saldoAux){
-                abono = saldoAux;
-            }
-
-            const nuevoSaldo = Math.max(0, saldoAux - abono);
-
-            // calcular fecha para esta cuota
-            const fechaCobro = getNextFechaCobro(fechaBase.toISOString(), contadorMes, loan.diaCobro).toISOString();
-
-            nuevasPendientes.push({
-                cuota: numeroBase + contadorMes,
-                cuotaFija: valorCuotaTarget,
-                interes: interes,
-                abonoCapital: abono,
-                saldo: nuevoSaldo,
-                fechaCobro: fechaCobro,
-                pagada: false,
-                fechaPago: null,
-                multa: 0,
-                multaPagada: false,
-                fechaPagoMulta: null
-            });
-
-            saldoAux = nuevoSaldo;
-            contadorMes++;
-            // límite de seguridad para evitar bucles infinitos
-            if(contadorMes > 500){
-                console.warn('recalcularCuotas: tope de 500 meses alcanzado, saliendo.');
-                break;
-            }
-        }
-
-        // Reconstruir la tabla: conservar las cuotas pagadas y reemplazar las pendientes por las nuevasPendientes
-        const pagadasMap = Object.fromEntries(pagadas.map(p => [p.cuota, p]));
-        // queremos que la tabla mantenga la numeración original hasta la última cuota pagada, y luego la nueva secuencia:
-        const ultimaCuotaPagada = pagadas.length ? pagadas[pagadas.length -1].cuota : 0;
-        // nueva tabla = cuotas pagadas (en su orden) + nuevasPendientes
-        loan.tabla = [
-            ...pagadas,
-            ...nuevasPendientes
-        ];
-    }
-
-    // Asegurarse que no existan números de cuota repetidos y que tabla esté ordenada por cuota
-    loan.tabla.sort((a,b) => a.cuota - b.cuota);
-
-    // Actualizar campos de resumen y estadísticas
-    const capitalPagadoFinal = loan.tabla.filter(c => c.pagada).reduce((s,c) => s + (c.abonoCapital || 0), 0);
-    loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoFinal);
-
-    await guardarCambios(loan);
-}
-
-/* ================= SEARCH FUNCTIONALITY ================= */
-
-function filtrarClientes(){
-    const texto = document.getElementById("searchInput").value.toLowerCase().trim();
-    const loanCards = document.querySelectorAll('.loan-card');
-    
-    if(texto === ''){
-        // Mostrar todos los préstamos si no hay texto de búsqueda
-        loanCards.forEach(card => {
-            card.style.display = 'block';
-        });
-        return;
-    }
-    
-    loanCards.forEach(card => {
-        const nombre = card.querySelector('div[style*="font-weight:800;font-size:15px"]').textContent.toLowerCase();
-        const loanId = card.getAttribute('data-loan-id');
-        
-        // Buscar en nombre del cliente
-        if(nombre.includes(texto)){
-            card.style.display = 'block';
-        }
-        // Buscar por ID de préstamo
-        else if(loanId && loanId.includes(texto)){
-            card.style.display = 'block';
-        }
-        // Si no coincide, ocultar
-        else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-// ============ INICIALIZACIÓN ============
-window.onload = function() {
-    if (API_URL) {
-        document.getElementById('configInstructions').style.display = 'none';
-        testConnection();
-        cargarDatos();
-    } else {
-        updateApiStatus('disconnected', 'URL no configurada');
-        document.getElementById('configInstructions').style.display = 'block';
-    }
-
-    renderCalendar(currentYear,currentMonth);
-};
-</script>
-
+        </div>
+
+        <!-- Date Edit Modal -->
+        <div id="dateEditModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <h3 id="dateEditTitle">Editar Fecha</h3>
+                <div class="form-group">
+                    <label id="dateEditLabel">Nueva fecha:</label>
+                    <input id="dateEditInput" type="date">
+                </div>
+                <div class="form-group">
+                    <label>Recalcular cuotas automáticamente:</label>
+                    <input type="checkbox" id="recalcularCuotas" checked>
+                    <small style="display:block;color:#6b7280;margin-top:4px">Si está activado, se recalcularán todas las fechas de cobro basadas en la nueva fecha de préstamo</small>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-cancel" onclick="cerrarModalEdicionFecha()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="confirmarEdicionFecha()">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <!-- Order matters: utils.js first (contains global variables), main.js last (initialization) -->
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/loans.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/payments.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
 
