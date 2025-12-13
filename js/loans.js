@@ -165,6 +165,32 @@ function exportarCSV(id) {
     a.click();
 }
 
+function exportarTodosCSV() {
+    if (loans.length === 0) {
+        alert('No hay préstamos para exportar');
+        return;
+    }
+    
+    let csv = 'Cliente,ID Préstamo,Tipo,Monto,Capital Restante,Intereses Cobrados,Cuota,Fecha Préstamo,Día Cobro,Cuota,Fecha Cobro,Cuota Fija,Interés,Abono Capital,Saldo,Estado,Fecha Pago,Multa 10%,Multa Pagada,Fecha Pago Multa\n';
+    
+    loans.forEach(loan => {
+        const stats = calcularStats(loan);
+        const esSoloInteres = loan.tipo === 'solo_interes';
+        
+        // Add loan header information for each installment
+        loan.tabla.forEach(c => {
+            csv += `${loan.nombre},${loan.id},${loan.tipo},${loan.monto.toFixed(0)},${stats.capitalRestante.toFixed(0)},${stats.interesesPagados.toFixed(0)},${loan.cuotaFija.toFixed(0)},${formatearFecha(loan.fechaPrestamo)},${loan.diaCobro || 'N/A'},`;
+            csv += `${c.cuota},${formatearFecha(c.fechaCobro)},${c.cuotaFija.toFixed(0)},${c.interes.toFixed(0)},${esSoloInteres ? '0' : c.abonoCapital.toFixed(0)},${c.saldo.toFixed(0)},${c.pagada ? 'Pagada' : 'Pendiente'},${c.fechaPago ? formatearFecha(c.fechaPago) : ''},${(c.cuotaFija * 0.10).toFixed(0)},${c.multaPagada ? 'Sí' : 'No'},${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}\n`;
+        });
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `todos_los_prestamos_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+}
+
 function generarInteresMensual(id) {
     const loan = loans.find(l => l.id === id);
     if (!loan) return;
