@@ -42,99 +42,99 @@
             </div>
         </div>
 
-        <div class="layout">
-            <!-- Loans Section - Full Width -->
-            <div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                    <h3 style="margin:0;color:#0f172a">Préstamos</h3>
-                    <div style="display:flex;gap:8px">
-                        <button class="btn" onclick="renderLoans()">Ordenar / Actualizar</button>
-                        <button class="btn btn-primary" onclick="exportarTodosCSV()">Exportar Todos CSV</button>
-                    </div>
-                </div>
-
-                <!-- Search Container -->
-                <div class="search-container">
-                    <input id="searchInput" type="text" oninput="filtrarClientes()" placeholder="Buscar cliente por nombre, documento o número de préstamo...">
-                    <span class="icon-search">🔍</span>
-                </div>
-
-                <div class="loans-list" id="loansContainer"></div>
-
-                <div class="groups" style="margin-top:12px">
-                    <div class="group-card"><h4>📅 Cobros de esta semana</h4><div class="group-list" id="groupThisWeek"></div></div>
-                    <div class="group-card"><h4>🗓️ Cobros del mes actual</h4><div class="group-list" id="groupThisMonth"></div></div>
-                    <div class="group-card"><h4>📆 Cobros del próximo mes</h4><div class="group-list" id="groupNextMonth"></div></div>
-                    <div class="group-card"><h4>🔮 Cobros futuros</h4><div class="group-list" id="groupFuture"></div></div>
+        <!-- Loans Section -->
+        <div class="loans-section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <h3 style="margin:0;color:#0f172a">Préstamos</h3>
+                <div style="display:flex;gap:8px">
+                    <button class="btn" onclick="renderLoans()">Ordenar / Actualizar</button>
+                    <button class="btn btn-primary" onclick="exportarTodosCSV()">Exportar Todos CSV</button>
                 </div>
             </div>
 
-            <!-- Calendar + Reports Section -->
-            <div>
-                <div class="calendar">
-                    <div class="cal-header">
-                        <div class="cal-controls">
-                            <button class="btn" id="prevMonth"><</button>
-                            <div class="month-label" id="monthLabel">Mes Año</div>
-                            <button class="btn" id="nextMonth">></button>
-                            <button class="btn" id="todayBtn">Hoy</button>
-                        </div>
-                        <div class="flex-row">
-                            <button class="btn btn-primary" onclick="renderCalendar(currentYear,currentMonth)">Refrescar</button>
-                        </div>
-                    </div>
+            <!-- Search Container -->
+            <div class="search-container">
+                <input id="searchInput" type="text" oninput="filtrarClientes()" placeholder="Buscar cliente por nombre, documento o número de préstamo...">
+                <span class="icon-search">🔍</span>
+            </div>
 
-                    <div class="cal-grid" id="weekdayHeader" style="margin-bottom:8px">
-                        <div class="weekday">Lun</div><div class="weekday">Mar</div><div class="weekday">Mié</div>
-                        <div class="weekday">Jue</div><div class="weekday">Vie</div><div class="weekday">Sáb</div><div class="weekday">Dom</div>
-                    </div>
+            <div class="loans-list" id="loansContainer"></div>
 
-                    <div class="cal-grid" id="calendarGrid"></div>
+            <div class="groups" style="margin-top:12px">
+                <div class="group-card"><h4>📅 Cobros de esta semana</h4><div class="group-list" id="groupThisWeek"></div></div>
+                <div class="group-card"><h4>🗓️ Cobros del mes actual</h4><div class="group-list" id="groupThisMonth"></div></div>
+                <div class="group-card"><h4>📆 Cobros del próximo mes</h4><div class="group-list" id="groupNextMonth"></div></div>
+            </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div class="calendar-section">
+            <div class="calendar">
+                <div class="cal-header">
+                    <div class="cal-controls">
+                        <button class="btn" id="prevMonth"><</button>
+                        <div class="month-label" id="monthLabel">Mes Año</div>
+                        <button class="btn" id="nextMonth">></button>
+                        <button class="btn" id="todayBtn">Hoy</button>
+                    </div>
+                    <div class="flex-row">
+                        <button class="btn btn-primary" onclick="renderCalendar(currentYear,currentMonth)">Refrescar</button>
+                    </div>
                 </div>
 
-                <div class="reports">
-                    <div class="report-card">
-                        <h4>📊 Reporte mensual — Comparativo</h4>
-                        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
-                            <div class="small">Mes actual:</div>
-                            <select id="reportMonthSelector" onchange="renderMonthlyReport()"></select>
-                            <div class="small">Año:</div>
-                            <select id="reportYearSelector" onchange="renderMonthlyReport()"></select>
-                            <button class="btn" onclick="renderMonthlyReport()">Aplicar</button>
-                        </div>
+                <div class="cal-grid" id="weekdayHeader" style="margin-bottom:8px">
+                    <div class="weekday">Lun</div><div class="weekday">Mar</div><div class="weekday">Mié</div>
+                    <div class="weekday">Jue</div><div class="weekday">Vie</div><div class="weekday">Sáb</div><div class="weekday">Dom</div>
+                </div>
 
-                        <table class="table" style="margin-top:10px">
-                            <thead>
-                                <tr><th>Concepto</th><th>Mes Actual</th><th>Mes Pasado</th></tr>
-                            </thead>
-                            <tbody id="monthlyReportBody">
-                                <tr><td>Total (Capital+Interés)</td><td id="r_total_current">$0</td><td id="r_total_prev">$0</td></tr>
-                                <tr><td>Solo Intereses</td><td id="r_interest_current">$0</td><td id="r_interest_prev">$0</td></tr>
-                                <tr><td>Variación %</td><td id="r_variation">0%</td><td></td></tr>
-                            </tbody>
-                        </table>
+                <div class="cal-grid" id="calendarGrid"></div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="reports-section">
+            <div class="reports">
+                <div class="report-card">
+                    <h4>📊 Reporte mensual — Comparativo</h4>
+                    <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                        <div class="small">Mes actual:</div>
+                        <select id="reportMonthSelector" onchange="renderMonthlyReport()"></select>
+                        <div class="small">Año:</div>
+                        <select id="reportYearSelector" onchange="renderMonthlyReport()"></select>
+                        <button class="btn" onclick="renderMonthlyReport()">Aplicar</button>
                     </div>
 
-                    <div class="report-card">
-                        <h4>📈 Flujo proyectado (12 meses)</h4>
-                        <div class="small" style="margin-bottom:8px">Proyección de ingresos (capital + interés) por mes según cuotas programadas.</div>
-                        <div class="mountain" id="projectedMountain"></div>
-                        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#475569" id="projLabels"></div>
-                    </div>
+                    <table class="table" style="margin-top:10px">
+                        <thead>
+                            <tr><th>Concepto</th><th>Mes Actual</th><th>Mes Pasado</th></tr>
+                        </thead>
+                        <tbody id="monthlyReportBody">
+                            <tr><td>Total (Capital+Interés)</td><td id="r_total_current">$0</td><td id="r_total_prev">$0</td></tr>
+                            <tr><td>Solo Intereses</td><td id="r_interest_current">$0</td><td id="r_interest_prev">$0</td></tr>
+                            <tr><td>Variación %</td><td id="r_variation">0%</td><td></td></tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                    <div class="report-card" style="grid-column:1/ -1">
-                        <h4>📊 Intereses cobrados por mes (histórico)</h4>
-                        <table class="table" id="interestsTable">
-                            <thead><tr><th>Mes</th><th>Intereses cobrados (pagados)</th></tr></thead>
-                            <tbody id="interestsBody"></tbody>
-                        </table>
-                    </div>
+                <div class="report-card">
+                    <h4>📈 Flujo proyectado (12 meses)</h4>
+                    <div class="small" style="margin-bottom:8px">Proyección de ingresos (capital + interés) por mes según cuotas programadas.</div>
+                    <div class="mountain" id="projectedMountain"></div>
+                    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:#475569" id="projLabels"></div>
+                </div>
 
-                    <div class="report-card">
-                        <h4>👥 Historial de pagos — Comportamiento</h4>
-                        <div class="small" style="margin-bottom:8px">Lista rápida: % a tiempo — clientes que pagan bien vs. los que atrasan.</div>
-                        <div class="client-list" id="clientHistoryList"></div>
-                    </div>
+                <div class="report-card" style="grid-column:1/ -1">
+                    <h4>📊 Intereses cobrados por mes (histórico)</h4>
+                    <table class="table" id="interestsTable">
+                        <thead><tr><th>Mes</th><th>Intereses cobrados (pagados)</th></tr></thead>
+                        <tbody id="interestsBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="report-card">
+                    <h4>👥 Historial de pagos — Comportamiento</h4>
+                    <div class="small" style="margin-bottom:8px">Lista rápida: % a tiempo — clientes que pagan bien vs. los que atrasan.</div>
+                    <div class="client-list" id="clientHistoryList"></div>
                 </div>
             </div>
         </div>

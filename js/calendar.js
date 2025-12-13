@@ -207,7 +207,6 @@ function renderGroupings() {
     renderGroupList('groupThisWeek', groups.week);
     renderGroupList('groupThisMonth', groups.thisMonth);
     renderGroupList('groupNextMonth', groups.nextMonth);
-    renderGroupList('groupFuture', groups.future);
 }
 
 function renderGroupList(id, items) {

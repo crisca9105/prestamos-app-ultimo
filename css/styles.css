@@ -458,3 +458,164 @@ input:focus, select:focus {
 .notes-badge:hover {
     background-color: #fde68a;
 }
+
+/* === Diseño Responsivo === */
+@media (max-width: 1024px) {
+    /* Tablet layout */
+    .layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+    
+    .form-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .groups {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Mobile layout */
+    body {
+        padding: 12px;
+    }
+    
+    .container {
+        padding: 8px;
+    }
+    
+    .header h1 {
+        font-size: 22px;
+    }
+    
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .layout, .loans-section, .calendar-section, .reports-section {
+        display: block;
+    }
+    
+    .cal-grid {
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+    
+    .day-cell {
+        min-height: 60px;
+        padding: 4px;
+        font-size: 12px;
+    }
+    
+    .weekday {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .groups {
+        grid-template-columns: 1fr;
+    }
+    
+    .cal-controls {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .cal-controls button {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+    
+    .month-label {
+        font-size: 14px;
+        margin: 4px 0;
+    }
+    
+    .loan-info {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .table th, .table td {
+        padding: 6px;
+        font-size: 12px;
+    }
+    
+    .receipts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    }
+    
+    .receipt-thumbnail {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .notes-textarea {
+        min-height: 60px;
+        font-size: 12px;
+    }
+    
+    .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .stat-card {
+        padding: 10px;
+    }
+    
+    .stat-card .value {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Small mobile layout */
+    .stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .cal-grid {
+        gap: 2px;
+    }
+    
+    .day-cell {
+        min-height: 50px;
+        padding: 3px;
+    }
+    
+    .weekday {
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+    
+    .receipts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    }
+    
+    .receipt-thumbnail {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Responsive layout classes */
+.loans-section, .calendar-section, .reports-section {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+@media (min-width: 1025px) {
+    /* Desktop layout - keep original grid */
+    .loans-section, .calendar-section, .reports-section {
+        display: block;
+    }
+}
