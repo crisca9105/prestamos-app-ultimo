@@ -191,7 +191,7 @@ function renderLoans() {
                         <button class="btn btn-primary" onclick="saveNotes(${loan.id})" style="padding:6px 12px;font-size:12px">Guardar Notas</button>
                     </div>
                     <div id="receipts-grid-${loan.id}" class="receipts-grid">
-                        ${loan.comprobantes.map((comp, idx) => `
+                        ${(loan.comprobantes || []).map((comp, idx) => `
                             <div style="position:relative">
                                 <img src="${comp}" class="receipt-thumbnail" onclick="showReceipt('${comp}')" alt="Comprobante ${idx + 1}">
                                 <button class="btn btn-danger" onclick="event.stopPropagation(); deleteReceipt(${loan.id}, ${idx})" style="position:absolute;top:2px;right:2px;padding:2px 4px;font-size:10px">✕</button>
@@ -199,8 +199,8 @@ function renderLoans() {
                         `).join('')}
                     </div>
                 </div>
-                ${loan.notas ? `<div class="notes-badge" onclick="toggleNotes(${loan.id})">📝 Tiene notas</div>` : ''}
-            </div>
+                ${loan.notas && loan.notas.trim() ? `<div class="notes-badge" onclick="toggleNotes(${loan.id})">📝 Tiene notas</div>` : ''}
+           </div>
        </div>`;
     }).join('');
 }

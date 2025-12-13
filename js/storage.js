@@ -100,6 +100,19 @@ async function cargarDatos() {
                 }
             });
             
+            // Backward compatibility: add new properties (telefono, notas, comprobantes) to existing loans
+            loans.forEach(loan => {
+                if (!loan.hasOwnProperty('telefono')) {
+                    loan.telefono = '';
+                }
+                if (!loan.hasOwnProperty('notas')) {
+                    loan.notas = '';
+                }
+                if (!loan.hasOwnProperty('comprobantes')) {
+                    loan.comprobantes = [];
+                }
+            });
+            
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
