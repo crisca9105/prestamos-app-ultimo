@@ -70,25 +70,91 @@ function renderCalendar(year, month) {
         const evWrap = document.createElement('div');
         evWrap.className = 'events';
         const todays = events[dayKey] || [];
-        todays.sort((a, b) => {
-            const order = { 'vencida': 0, 'hoy': 1, 'proxima': 2, 'normal': 3 };
-            return order[a.estado] - order[b.estado];
-        });
+        
+        // Group events by loan to limit to 3 installments per loan
+        const eventsByLoan = {};
         todays.forEach(ev => {
-            const pill = document.createElement('div');
-            pill.className = 'event-pill';
-            const dot = document.createElement('div');
-            dot.className = 'event-dot';
-            if (ev.estado === 'vencida') dot.classList.add('dot-vencida');
-            else if (ev.estado === 'hoy') dot.classList.add('dot-hoy');
-            else dot.classList.add('dot-proxima');
-            const txt = document.createElement('div');
-            txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}</div>`;
-            pill.appendChild(dot);
-            pill.appendChild(txt);
-            pill.onclick = () => { scrollToLoan(ev.loanId); };
-            evWrap.appendChild(pill);
+            if (!eventsByLoan[ev.loanId]) {
+                eventsByLoan[ev.loanId] = [];
+            }
+            eventsByLoan[ev.loanId].push(ev);
         });
+        
+        // Sort loans by status (overdue first, then today, then upcoming)
+        const sortedLoans = Object.values(eventsByLoan).sort((a, b) => {
+            const getPriority = (events) => {
+                const hasVencida = events.some(e => e.estado === 'vencida');
+                const hasHoy = events.some(e => e.estado === 'hoy');
+                const hasProxima = events.some(e => e.estado === 'proxima');
+                
+                if (hasVencida) return 0;
+                if (hasHoy) return 1;
+                if (hasProxima) return 2;
+                return 3;
+            };
+            
+            return getPriority(a) - getPriority(b);
+        });
+        
+        // Render limited installments per loan
+        sortedLoans.forEach(loanEvents => {
+            const loanId = loanEvents[0].loanId;
+            const loanName = loanEvents[0].nombre;
+            
+            // Show first 3 installments
+            const visibleEvents = loanEvents.slice(0, 3);
+            const hiddenEvents = loanEvents.slice(3);
+            
+            visibleEvents.forEach(ev => {
+                const pill = document.createElement('div');
+                pill.className = 'event-pill';
+                const dot = document.createElement('div');
+                dot.className = 'event-dot';
+                if (ev.estado === 'vencida') dot.classList.add('dot-vencida');
+                else if (ev.estado === 'hoy') dot.classList.add('dot-hoy');
+                else dot.classList.add('dot-proxima');
+                const txt = document.createElement('div');
+                txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}</div>`;
+                pill.appendChild(dot);
+                pill.appendChild(txt);
+                pill.onclick = () => { scrollToLoan(ev.loanId); };
+                evWrap.appendChild(pill);
+            });
+            
+            // Add "show more" button if there are hidden events
+            if (hiddenEvents.length > 0) {
+                const moreButton = document.createElement('div');
+                moreButton.className = 'event-pill show-more';
+                moreButton.style.justifyContent = 'center';
+                moreButton.style.fontSize = '11px';
+                moreButton.style.fontWeight = '600';
+                moreButton.style.color = 'var(--primary-color)';
+                moreButton.style.cursor = 'pointer';
+                moreButton.textContent = `+${hiddenEvents.length} más de ${loanName}`;
+                moreButton.onclick = (e) => {
+                    e.stopPropagation();
+                    // Show all events for this loan
+                    hiddenEvents.forEach(ev => {
+                        const pill = document.createElement('div');
+                        pill.className = 'event-pill';
+                        const dot = document.createElement('div');
+                        dot.className = 'event-dot';
+                        if (ev.estado === 'vencida') dot.classList.add('dot-vencida');
+                        else if (ev.estado === 'hoy') dot.classList.add('dot-hoy');
+                        else dot.classList.add('dot-proxima');
+                        const txt = document.createElement('div');
+                        txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}</div>`;
+                        pill.appendChild(dot);
+                        pill.appendChild(txt);
+                        pill.onclick = () => { scrollToLoan(ev.loanId); };
+                        evWrap.insertBefore(pill, moreButton);
+                    });
+                    moreButton.remove();
+                };
+                evWrap.appendChild(moreButton);
+            }
+        });
+        
         cell.appendChild(evWrap);
         if (todays.length > 0) {
             const total = todays.reduce((s, e) => s + e.valor, 0);
