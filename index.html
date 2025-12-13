@@ -9,7 +9,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>💰 Gestión de Préstamos — Reportes</h1>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <h1>💰 Gestión de Préstamos — Reportes</h1>
+                <div id="authButtons" style="display:flex;gap:8px">
+                    <button class="btn" onclick="showAuthModal('login')">Iniciar Sesión</button>
+                    <button class="btn btn-primary" onclick="showAuthModal('signup')">Registrarse</button>
+                </div>
+            </div>
             <p class="small" style="margin-top:6px;color:#64748b">Reportes mensuales, flujo proyectado y comportamiento de pagos.</p>
             <div class="stats" style="margin-top:12px">
                 <div class="stat-card"><label>Total Prestado</label><div class="value" id="totalPrestado">$0</div></div>
@@ -204,6 +210,37 @@
         </div>
     </div>
 
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="authModalTitle">Iniciar Sesión</h3>
+            <div id="authForm">
+                <div class="form-group">
+                    <label>Correo Electrónico</label>
+                    <input id="authEmail" type="email" placeholder="tu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input id="authPassword" type="password" placeholder="••••••••">
+                </div>
+                <div id="authNameGroup" class="form-group" style="display:none;">
+                    <label>Nombre Completo</label>
+                    <input id="authName" type="text" placeholder="Tu nombre completo">
+                </div>
+                <div class="form-group" style="text-align:center">
+                    <span id="authError" style="color:#ef4444;font-size:14px"></span>
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-cancel" onclick="closeAuthModal()">Cancelar</button>
+                    <button id="authSubmitBtn" class="btn btn-primary" onclick="handleAuth()">Iniciar Sesión</button>
+                </div>
+                <div style="text-align:center;margin-top:16px">
+                    <span id="authToggleText">¿No tienes cuenta? <a href="#" onclick="showAuthModal('signup')" style="color:var(--primary-color);cursor:pointer">Regístrate</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Receipt Viewer Modal -->
     <div id="receiptViewerModal" class="modal" style="display:none;">
         <div class="modal-content" style="max-width: 800px;">
@@ -217,9 +254,13 @@
         </div>
     </div>
 
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <!-- JavaScript Modules -->
     <!-- Order matters: utils.js first (contains global variables), main.js last (initialization) -->
     <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/loans.js"></script>
     <script src="js/calendar.js"></script>
