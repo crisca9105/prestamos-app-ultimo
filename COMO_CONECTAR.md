@@ -182,3 +182,6 @@ Tu app ahora está conectada a Supabase y funcionando en la nube. Los datos se s
 
 
 
+
+
+

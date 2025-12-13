@@ -330,3 +330,6 @@ Tu aplicación ahora está completamente migrada a Supabase y funcionando en la 
 
 
 
+
+
+
