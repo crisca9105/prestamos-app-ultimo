@@ -177,10 +177,7 @@ input:focus, select:focus {
     text-align: center;
 }
 
-.cal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.weekday {
     margin-bottom: 16px;
 }
 
@@ -239,4 +236,94 @@ input:focus, select:focus {
     justify-content: flex-end;
     gap: 8px;
     margin-top: 20px;
+}
+
+/* === Estilos del Calendario === */
+.day-cell {
+    min-height: 80px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+    background-color: var(--card-bg-color);
+}
+
+.other-month {
+    opacity: 0.4;
+}
+
+.day-num {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.events {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.event-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background-color 0.2s;
+}
+
+.event-pill:hover {
+    background-color: #f1f5f9;
+}
+
+.event-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    flex-shrink: 0;
+}
+
+.dot-vencida {
+    background-color: var(--danger-color); /* Rojo para atrasados */
+}
+
+.dot-hoy {
+    background-color: var(--warning-color); /* Amarillo para hoy */
+}
+
+.dot-proxima {
+    background-color: var(--primary-color); /* Azul para próximos */
+}
+
+.day-total {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-top: 4px;
+    text-align: right;
+}
+
+/* === Puntos de Colores para Eventos del Calendario === */
+.event-dot {
+    width: 8px !important;
+    height: 8px !important;
+    border-radius: 50% !important;
+    display: inline-block !important;
+    margin-right: 5px !important;
+    flex-shrink: 0 !important;
+}
+
+.dot-vencida {
+    background-color: #ef4444 !important; /* Rojo para atrasados */
+}
+
+.dot-hoy {
+    background-color: #f59e0b !important; /* Amarillo para hoy */
+}
+
+.dot-proxima {
+    background-color: #3b82f6 !important; /* Azul para próximos */
 }
