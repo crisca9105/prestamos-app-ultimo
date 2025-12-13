@@ -138,6 +138,112 @@
       // Mostrar el modal de login por defecto
       showAuthModal('login');
     });
+    
+    // Función para manejar el registro
+    async function handleSignup() {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const name = document.getElementById('authName').value;
+      const errorElement = document.getElementById('error');
+      
+      if (!email || !password || !name) {
+        errorElement.textContent = 'Por favor completa todos los campos';
+        return;
+      }
+      
+      if (password.length < 6) {
+        errorElement.textContent = 'La contraseña debe tener al menos 6 caracteres';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            full_name: name
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          errorElement.textContent = '';
+          alert('Registro exitoso! Por favor revisa tu correo para confirmar tu cuenta.');
+          showAuthModal('login');
+        } else {
+          errorElement.textContent = data.message || 'Error al registrar';
+        }
+      } catch (error) {
+        errorElement.textContent = 'Error al registrar: ' + error.message;
+        console.error('Signup error:', error);
+      }
+    }
+    
+    // Función para manejar el login
+    async function handleLogin() {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const errorElement = document.getElementById('error');
+      
+      if (!email || !password) {
+        errorElement.textContent = 'Por favor completa todos los campos';
+        return;
+      }
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          errorElement.textContent = '';
+          // Redirigir a la aplicación principal
+          window.location.href = '/index.html';
+        } else {
+          errorElement.textContent = data.message || 'Credenciales incorrectas';
+        }
+      } catch (error) {
+        errorElement.textContent = 'Error al iniciar sesión: ' + error.message;
+        console.error('Login error:', error);
+      }
+    }
+    
+    // Función para mostrar el modal de registro
+    function showAuthModal(mode) {
+      const title = document.getElementById('authModalTitle');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      const nameGroup = document.getElementById('authNameGroup');
+      const errorElement = document.getElementById('error');
+      
+      // Clear previous errors
+      errorElement.textContent = '';
+      
+      if (mode === 'login') {
+        title.textContent = 'Iniciar Sesión';
+        submitBtn.textContent = 'Iniciar Sesión';
+        submitBtn.onclick = handleLogin;
+        nameGroup.style.display = 'none';
+      } else {
+        title.textContent = 'Registrarse';
+        submitBtn.textContent = 'Registrarse';
+        submitBtn.onclick = handleSignup;
+        nameGroup.style.display = 'block';
+      }
+    }
   </script>
 </body>
 </html>
