@@ -241,10 +241,18 @@ input:focus, select:focus {
 /* === Estilos del Calendario === */
 .day-cell {
     min-height: 80px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
     padding: 8px;
     background-color: var(--card-bg-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.day-cell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
 }
 
 .other-month {
