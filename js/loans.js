@@ -138,8 +138,21 @@ function calcularStats(loan) {
 function toggleCuota(loanId, idx) {
     const loan = loans.find(l => l.id === loanId);
     if (!loan) return;
-    loan.tabla[idx].pagada = !loan.tabla[idx].pagada;
-    loan.tabla[idx].fechaPago = loan.tabla[idx].pagada ? new Date().toISOString() : null;
+    
+    const cuota = loan.tabla[idx];
+    
+    // Only show confirmation if marking as paid (not already paid)
+    if (!cuota.pagada) {
+        const confirmed = confirm('¿Estás seguro de que esta cuota fue pagada?');
+        if (!confirmed) {
+            return; // User cancelled, don't mark as paid
+        }
+    }
+    
+    // Toggle the payment status
+    cuota.pagada = !cuota.pagada;
+    cuota.fechaPago = cuota.pagada ? new Date().toISOString() : null;
+    
     guardarDatos();
     renderAll();
 }
