@@ -257,6 +257,20 @@
     <!-- Supabase Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- Protección de página - Redirige a login si no está autenticado -->
+    <script>
+      // Verificar autenticación al cargar la página
+      document.addEventListener('DOMContentLoaded', function() {
+        // Check if user is authenticated
+        const isAuthenticated = localStorage.getItem('supabase.auth.token') !== null;
+        
+        if (!isAuthenticated) {
+          // Redirect to login page if not authenticated
+          window.location.href = '/login.html';
+        }
+      });
+    </script>
+    
     <!-- JavaScript Modules -->
     <!-- Order matters: utils.js first (contains global variables), main.js last (initialization) -->
     <script src="js/utils.js"></script>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Gestión de Préstamos</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    .login-container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      width: 350px;
+      text-align: center;
+    }
+    
+    .login-container h2 {
+      color: #3b82f6;
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+    
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    
+    .login-container input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+    
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    
+    .login-container button:hover {
+      background-color: #2563eb;
+    }
+    
+    .login-container button.btn-secondary {
+      background-color: white;
+      color: #3b82f6;
+      border: 1px solid #3b82f6;
+      margin-top: 0;
+    }
+    
+    .login-container button.btn-secondary:hover {
+      background-color: #f1f5f9;
+    }
+    
+    #error {
+      color: #ef4444;
+      margin-top: 15px;
+      min-height: 20px;
+    }
+    
+    .logo {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #3b82f6;
+    }
+    
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #64748b;
+      font-size: 14px;
+    }
+    
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .divider::before {
+      margin-right: 10px;
+    }
+    
+    .divider::after {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">💰</div>
+    <h2 id="authModalTitle">Iniciar Sesión</h2>
+
+    <div id="authForm">
+      <input id="authEmail" type="email" placeholder="Correo electrónico">
+      <input id="authPassword" type="password" placeholder="Contraseña">
+      <div id="authNameGroup" style="display:none;">
+        <input id="authName" type="text" placeholder="Nombre completo">
+      </div>
+      <p id="error" style="color:#ef4444;font-size:14px;min-height:20px;"></p>
+      <button id="authSubmitBtn" onclick="handleAuth()">Iniciar Sesión</button>
+      <button class="btn-secondary" onclick="showAuthModal('signup')">Registrarse</button>
+    </div>
+  </div>
+
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // Inicializar autenticación al cargar la página de login
+    document.addEventListener('DOMContentLoaded', function() {
+      initSupabase();
+      
+      // Mostrar el modal de login por defecto
+      showAuthModal('login');
+    });
+  </script>
+</body>
+</html>

@@ -166,6 +166,13 @@ async function handleLogin() {
         if (error) {
             if (errorElement) errorElement.textContent = error.message;
             console.error('Login error:', error);
+        } else {
+            // Login successful, redirect to main app
+            if (window.location.pathname.includes('login.html')) {
+                window.location.href = '/index.html';
+            } else {
+                closeAuthModal();
+            }
         }
     } catch (error) {
         if (errorElement) errorElement.textContent = 'Error al iniciar sesión: ' + error.message;
