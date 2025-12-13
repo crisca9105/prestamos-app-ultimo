@@ -74,7 +74,9 @@ function agregarPrestamo() {
             fechaPrestamo,
             diaCobro,
             tabla: [],
-            capitalPendiente: monto
+            capitalPendiente: monto,
+            notas: '',
+            comprobantes: []
         });
     } else {
         const tabla = generarTablaAmortizacion(monto, tasa, cuotas, fechaPrestamo, diaCobro);
@@ -93,7 +95,9 @@ function agregarPrestamo() {
             fechaPrestamo,
             diaCobro,
             tabla,
-            capitalPendiente: monto
+            capitalPendiente: monto,
+            notas: '',
+            comprobantes: []
         });
     }
 
@@ -348,5 +352,72 @@ function recalcularTablaAmortizacion(loan) {
 
     loan.tabla = nuevaTabla;
     guardarDatos();
+}
+
+// ================= NOTES AND RECEIPTS FUNCTIONALITY =================
+
+function toggleNotes(loanId) {
+    const content = document.getElementById(`notes-content-${loanId}`);
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+    } else {
+        content.style.display = 'none';
+    }
+}
+
+function saveNotes(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    
+    const notesTextarea = document.getElementById(`notes-textarea-${loanId}`);
+    loan.notas = notesTextarea.value;
+    
+    guardarDatos();
+    renderAll();
+    alert('Notas guardadas correctamente');
+}
+
+function handleFileUpload(loanId, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const loan = loans.find(l => l.id === loanId);
+        if (!loan) return;
+        
+        loan.comprobantes.push(e.target.result);
+        
+        guardarDatos();
+        renderAll();
+        
+        // Clear the file input
+        document.getElementById(`file-input-${loanId}`).value = '';
+        
+        alert('Comprobante subido correctamente');
+    };
+    reader.readAsDataURL(file);
+}
+
+function showReceipt(imageUrl) {
+    const modal = document.getElementById('receiptViewerModal');
+    const img = document.getElementById('receiptViewerImage');
+    img.src = imageUrl;
+    modal.style.display = 'flex';
+}
+
+function closeReceiptViewer() {
+    document.getElementById('receiptViewerModal').style.display = 'none';
+}
+
+function deleteReceipt(loanId, receiptIndex) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    
+    if (confirm('¿Estás seguro de que quieres eliminar este comprobante?')) {
+        loan.comprobantes.splice(receiptIndex, 1);
+        guardarDatos();
+        renderAll();
+    }
 }
 
