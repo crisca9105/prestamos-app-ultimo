@@ -72,8 +72,8 @@ function renderLoans() {
                             <th style="padding:6px">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${loan.tabla.map((c, i) => {
+                    <tbody id="loan-table-${loan.id}">
+                        ${loan.tabla.slice(0, 3).map((c, i) => {
                             const vencida = !c.pagada && estaVencida(c.fechaCobro);
                             const multa = c.cuotaFija * 0.10;
                             const puedePagarMulta = !c.pagada && !c.multaPagada;
@@ -95,7 +95,7 @@ function renderLoans() {
                                     ${c.multaPagada ?
                                         `<span style="color:#10b981;font-weight:bold">✓ ${formatMoney(c.multa)}</span>
                                          <div style="font-size:11px;color:#64748b">Pagada: ${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
-                                        :
+                                         :
                                         `<span style="color:#f59e0b">${formatMoney(multa)}</span>`
                                     }
                                 </td>
@@ -113,6 +113,64 @@ function renderLoans() {
                                 </td>
                             </tr>`;
                         }).join('')}
+                        ${loan.tabla.length > 3 ? `
+                        <tr id="show-more-row-${loan.id}">
+                            <td colspan="${esSoloInteres ? '8' : '9'}" style="text-align:center;padding:12px 0">
+                                <button class="btn show-more-btn" onclick="toggleMoreInstallments(${loan.id})" style="background:#3b82f6;color:white">
+                                    +${loan.tabla.length - 3} más cuotas
+                                </button>
+                            </td>
+                        </tr>
+                        <tr id="hidden-installments-${loan.id}" style="display:none">
+                            <td colspan="${esSoloInteres ? '8' : '9'}" style="padding:0">
+                                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                                    <tbody>
+                                        ${loan.tabla.slice(3).map((c, i) => {
+                                            const actualIndex = i + 3;
+                                            const vencida = !c.pagada && estaVencida(c.fechaCobro);
+                                            const multa = c.cuotaFija * 0.10;
+                                            const puedePagarMulta = !c.pagada && !c.multaPagada;
+                                            const puedePagarConExcedente = !c.pagada;
+
+                                            return `<tr style="background:${c.pagada ? '#d1fae5' : vencida ? '#fee2e2' : 'transparent'}">
+                                                <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${actualIndex})" style="border-radius:999px;padding:6px 8px">${c.pagada ? '✓' : '○'}</button></td>
+                                                <td style="padding:6px">${c.cuota}</td>
+                                                <td style="padding:6px">
+                                                    <span id="fechaCobro-${loan.id}-${actualIndex}">${formatearFecha(c.fechaCobro)}</span>
+                                                    <button class="btn" onclick="editarFechaCobro(${loan.id}, ${actualIndex}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
+                                                    ${c.pagada ? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>' : ''}
+                                                </td>
+                                                <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
+                                                <td style="padding:6px">${formatMoney(c.interes)}</td>
+                                                ${esSoloInteres ? '' : `<td style="padding:6px">${formatMoney(c.abonoCapital)}</td>`}
+                                                <td style="padding:6px"><strong>${formatMoney(c.saldo)}</strong></td>
+                                                <td style="padding:6px">
+                                                    ${c.multaPagada ?
+                                                        `<span style="color:#10b981;font-weight:bold">✓ ${formatMoney(c.multa)}</span>
+                                                         <div style="font-size:11px;color:#64748b">Pagada: ${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
+                                                         :
+                                                        `<span style="color:#f59e0b">${formatMoney(multa)}</span>`
+                                                    }
+                                                </td>
+                                                <td style="padding:6px">
+                                                    <div style="display:flex;flex-direction:column;gap:4px">
+                                                        ${puedePagarMulta ?
+                                                            `<button class="btn" onclick="pagarMulta10Porciento(${loan.id},${actualIndex})" style="background:#f59e0b;color:white;font-size:11px;padding:4px 8px">Pagar multa 10%</button>`
+                                                            : ''
+                                                        }
+                                                        ${puedePagarConExcedente ?
+                                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${actualIndex})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar + Excedente (Auto-Ajuste)</button>`
+                                                            : ''
+                                                        }
+                                                    </div>
+                                                </td>
+                                            </tr>`;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        ` : ''}
                     </tbody>
                 </table>
             </div>
@@ -147,12 +205,31 @@ function filtrarClientes() {
     });
 }
 
+function toggleMoreInstallments(loanId) {
+    const showMoreRow = document.getElementById(`show-more-row-${loanId}`);
+    const hiddenInstallments = document.getElementById(`hidden-installments-${loanId}`);
+    const button = showMoreRow.querySelector('.show-more-btn');
+    
+    if (hiddenInstallments.style.display === 'none') {
+        hiddenInstallments.style.display = 'table-row';
+        button.textContent = 'Ocultar cuotas';
+        button.style.background = '#ef4444';
+    } else {
+        hiddenInstallments.style.display = 'none';
+        button.textContent = `+${hiddenInstallments.querySelectorAll('tr').length} más cuotas`;
+        button.style.background = '#3b82f6';
+    }
+}
+
 function renderAll() {
     actualizarEstadisticas();
     renderLoans();
     renderCalendar(currentYear, currentMonth);
     initReportSelectors();
 }
+
+
+
 
 
 
