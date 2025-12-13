@@ -37,7 +37,10 @@ function renderLoans() {
         return `<div class="loan-card" data-loan-id="${loan.id}">
             <div class="loan-header">
                 <div>
-                    <div class="cliente-nombre" style="font-weight:800;font-size:15px">${loan.nombre} ${tipoLabel}</div>
+                    <div class="cliente-nombre" style="font-weight:800;font-size:15px">
+                        ${loan.nombre} ${tipoLabel}
+                        <button class="btn" onclick="editarNombreCliente(${loan.id})" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
+                    </div>
                     <div class="small">
                         <span id="fechaPrestamo-${loan.id}">Prestado: ${formatearFecha(loan.fechaPrestamo)}</span>
                         <button class="btn" onclick="editarFechaPrestamo(${loan.id}, '${loan.fechaPrestamo}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>

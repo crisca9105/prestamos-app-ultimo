@@ -164,6 +164,23 @@ function eliminarPrestamo(id) {
     renderAll();
 }
 
+function editarNombreCliente(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    
+    const nuevoNombre = prompt('Editar nombre del cliente:', loan.nombre);
+    if (nuevoNombre === null) return; // User cancelled
+    
+    if (nuevoNombre.trim() === '') {
+        alert('El nombre no puede estar vacío');
+        return;
+    }
+    
+    loan.nombre = nuevoNombre.trim();
+    guardarDatos();
+    renderAll();
+}
+
 function exportarCSV(id) {
     const loan = loans.find(l => l.id === id);
     if (!loan) return;
