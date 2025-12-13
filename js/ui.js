@@ -45,6 +45,7 @@ function renderLoans() {
                         <span id="fechaPrestamo-${loan.id}">Prestado: ${formatearFecha(loan.fechaPrestamo)}</span>
                         <button class="btn" onclick="editarFechaPrestamo(${loan.id}, '${loan.fechaPrestamo}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
                         ${loan.diaCobro ? ' • Día cobro: ' + loan.diaCobro : ''}
+                        ${loan.telefono ? ' • Tel: ' + loan.telefono : ''}
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center">
@@ -195,11 +196,15 @@ function filtrarClientes() {
     loanCards.forEach(card => {
         const nombre = card.querySelector('div[style*="font-weight:800;font-size:15px"]').textContent.toLowerCase();
         const loanId = card.getAttribute('data-loan-id');
+        const telefono = card.querySelector('.small')?.textContent.toLowerCase() || '';
 
         if (nombre.includes(texto)) {
             card.style.display = 'block';
         }
         else if (loanId && loanId.includes(texto)) {
+            card.style.display = 'block';
+        }
+        else if (telefono.includes(texto)) {
             card.style.display = 'block';
         }
         else {

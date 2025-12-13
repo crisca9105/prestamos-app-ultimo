@@ -41,6 +41,7 @@ function generarTablaAmortizacion(m, t, c, fi, dia) {
 
 function agregarPrestamo() {
     const nombre = document.getElementById('nombre').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
     const monto = parseFloat(document.getElementById('monto').value);
     const tasa = parseFloat(document.getElementById('tasa').value);
     const tipo = document.getElementById('tipoPrestamo').value;
@@ -62,6 +63,7 @@ function agregarPrestamo() {
         loans.unshift({
             id: Date.now(),
             nombre,
+            telefono,
             monto,
             tasa,
             tipo: 'solo_interes',
@@ -80,6 +82,7 @@ function agregarPrestamo() {
         loans.unshift({
             id: Date.now(),
             nombre,
+            telefono,
             monto,
             tasa,
             tipo: 'cuotas_fijas',

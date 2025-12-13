@@ -27,6 +27,7 @@ function getEventsInRange(startDate, endDate) {
                 events[key].push({
                     loanId: loan.id,
                     nombre: loan.nombre,
+                    telefono: loan.telefono,
                     cuota: c.cuota,
                     fecha: c.fechaCobro,
                     valor: c.cuotaFija,
@@ -114,7 +115,8 @@ function renderCalendar(year, month) {
                 else if (ev.estado === 'hoy') dot.classList.add('dot-hoy');
                 else dot.classList.add('dot-proxima');
                 const txt = document.createElement('div');
-                txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}</div>`;
+                const phoneDisplay = ev.telefono ? ` • ${ev.telefono}` : '';
+                txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}${phoneDisplay}</div>`;
                 pill.appendChild(dot);
                 pill.appendChild(txt);
                 pill.onclick = () => { scrollToLoan(ev.loanId); };
@@ -143,7 +145,8 @@ function renderCalendar(year, month) {
                         else if (ev.estado === 'hoy') dot.classList.add('dot-hoy');
                         else dot.classList.add('dot-proxima');
                         const txt = document.createElement('div');
-                        txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}</div>`;
+                        const phoneDisplay = ev.telefono ? ` • ${ev.telefono}` : '';
+                        txt.innerHTML = `<strong style="font-size:13px">${ev.nombre}</strong> <div style="font-size:12px;color:#475569">#${ev.cuota} • ${formatMoney(ev.valor)}${phoneDisplay}</div>`;
                         pill.appendChild(dot);
                         pill.appendChild(txt);
                         pill.onclick = () => { scrollToLoan(ev.loanId); };
