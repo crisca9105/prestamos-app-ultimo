@@ -312,44 +312,90 @@ function editarNombreCliente(loanId) {
     renderAll();
 }
 
-function exportarCSV(id) {
-    const loan = loans.find(l => l.id === id);
-    if (!loan) return;
-    let csv = 'Préstamo,Cuota,Fecha Cobro,Cuota Fija,Interés,Abono,Saldo,Estado,Fecha Pago,Multa 10%,Multa Pagada,Fecha Pago Multa\n';
-    loan.tabla.forEach(c => {
-        csv += `${loan.nombre},${c.cuota},${formatearFecha(c.fechaCobro)},${c.cuotaFija.toFixed(0)},${c.interes.toFixed(0)},${c.abonoCapital.toFixed(0)},${c.saldo.toFixed(0)},${c.pagada ? 'Pagada' : 'Pendiente'},${c.fechaPago ? formatearFecha(c.fechaPago) : ''},${(c.cuotaFija * 0.10).toFixed(0)},${c.multaPagada ? 'Sí' : 'No'},${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv' });
+function descargarCSV(contenido, nombre) {
+    const BOM = '﻿'; // para que Excel abra tildes correctamente
+    const blob = new Blob([BOM + contenido], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `cuotas_${loan.nombre.replace(/\s/g, '_')}.csv`;
+    a.download = nombre;
     a.click();
 }
 
-function exportarTodosCSV() {
-    if (loans.length === 0) {
-        alert('No hay préstamos para exportar');
-        return;
+function exportarCSV(id) {
+    const loan = loans.find(l => l.id === id);
+    if (!loan) return;
+    const stats = calcularStats(loan);
+    const esSoloInteres = loan.tipo === 'solo_interes';
+    const totalInteresSolo = loan.tabla.reduce((s, c) => s + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
+
+    let csv = '';
+
+    // --- Resumen ---
+    csv += 'RESUMEN DEL PRÉSTAMO\n';
+    csv += `Cliente,${loan.nombre}\n`;
+    csv += `Teléfono,${loan.telefono || ''}\n`;
+    csv += `Monto prestado,${loan.monto}\n`;
+    csv += `Tasa mensual,${loan.tasa}%\n`;
+    csv += `Tipo,${esSoloInteres ? 'Solo interés mensual' : 'Cuotas fijas'}\n`;
+    csv += `Fecha préstamo,${formatearFecha(loan.fechaPrestamo)}\n`;
+    csv += `Día de cobro,${loan.diaCobro || 'N/A'}\n`;
+    csv += `Capital pendiente,${stats.capitalRestante}\n`;
+    csv += `Intereses cobrados (cuotas),${stats.interesesPagados}\n`;
+    csv += `Intereses cobrados (solo interés),${totalInteresSolo}\n`;
+    csv += `Total intereses cobrados,${stats.interesesPagados + totalInteresSolo}\n`;
+    csv += '\n';
+
+    // --- Cuotas ---
+    csv += 'TABLA DE CUOTAS\n';
+    csv += '#,Fecha cobro,Estado,Fecha pago,Nota de pago,Cuota total,Interés,Abono capital,Saldo,Pagos de solo interés\n';
+    loan.tabla.forEach(c => {
+        const pagosInteresList = (c.pagosInteres || []).map(p => `${formatearFecha(p.fecha)}: $${p.monto}`).join(' | ');
+        csv += `${c.cuota},${formatearFecha(c.fechaCobro)},${c.pagada ? 'Pagada' : estaVencida(c.fechaCobro) ? 'Vencida' : 'Pendiente'},${c.fechaPago ? formatearFecha(c.fechaPago) : ''},${c.notaPago || ''},${c.cuotaFija.toFixed(0)},${c.interes.toFixed(0)},${esSoloInteres ? '0' : c.abonoCapital.toFixed(0)},${c.saldo.toFixed(0)},"${pagosInteresList}"\n`;
+    });
+    csv += '\n';
+
+    // --- Abonos al capital ---
+    if ((loan.abonosCapital || []).length > 0) {
+        csv += 'ABONOS AL CAPITAL\n';
+        csv += 'Fecha,Monto,Nota\n';
+        loan.abonosCapital.forEach(a => {
+            csv += `${formatearFecha(a.fecha)},${a.monto},${a.nota || ''}\n`;
+        });
+        csv += '\n';
     }
-    
-    let csv = 'Cliente,ID Préstamo,Tipo,Monto,Capital Restante,Intereses Cobrados,Cuota,Fecha Préstamo,Día Cobro,Cuota,Fecha Cobro,Cuota Fija,Interés,Abono Capital,Saldo,Estado,Fecha Pago,Multa 10%,Multa Pagada,Fecha Pago Multa\n';
-    
-    loans.forEach(loan => {
-        const stats = calcularStats(loan);
+
+    descargarCSV(csv, `prestamo_${loan.nombre.replace(/\s/g, '_')}.csv`);
+}
+
+function exportarTodosCSV() {
+    const activos = loans.filter(l => !l.archivado);
+    if (activos.length === 0) { alert('No hay préstamos para exportar'); return; }
+
+    let csv = '';
+
+    // --- Resumen general ---
+    csv += 'RESUMEN DE TODOS LOS PRÉSTAMOS\n';
+    csv += 'Cliente,Teléfono,Tipo,Monto prestado,Tasa,Fecha préstamo,Capital pendiente,Intereses cobrados,Cuotas pagadas,Cuotas pendientes,Cuotas vencidas\n';
+    activos.forEach(loan => {
+        const s = calcularStats(loan);
+        const totalInteresSolo = loan.tabla.reduce((sum, c) => sum + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
+        const pagadas = loan.tabla.filter(c => c.pagada).length;
+        const pendientes = loan.tabla.filter(c => !c.pagada).length;
+        csv += `${loan.nombre},${loan.telefono || ''},${loan.tipo === 'solo_interes' ? 'Solo interés' : 'Cuotas fijas'},${loan.monto},${loan.tasa}%,${formatearFecha(loan.fechaPrestamo)},${s.capitalRestante},${s.interesesPagados + totalInteresSolo},${pagadas},${pendientes},${s.cuotasVencidas}\n`;
+    });
+    csv += '\n';
+
+    // --- Detalle por cliente ---
+    csv += 'DETALLE DE CUOTAS POR CLIENTE\n';
+    csv += 'Cliente,#,Fecha cobro,Estado,Fecha pago,Nota de pago,Cuota total,Interés,Abono capital,Saldo\n';
+    activos.forEach(loan => {
         const esSoloInteres = loan.tipo === 'solo_interes';
-        
-        // Add loan header information for each installment
         loan.tabla.forEach(c => {
-            csv += `${loan.nombre},${loan.id},${loan.tipo},${loan.monto.toFixed(0)},${stats.capitalRestante.toFixed(0)},${stats.interesesPagados.toFixed(0)},${loan.cuotaFija.toFixed(0)},${formatearFecha(loan.fechaPrestamo)},${loan.diaCobro || 'N/A'},`;
-            csv += `${c.cuota},${formatearFecha(c.fechaCobro)},${c.cuotaFija.toFixed(0)},${c.interes.toFixed(0)},${esSoloInteres ? '0' : c.abonoCapital.toFixed(0)},${c.saldo.toFixed(0)},${c.pagada ? 'Pagada' : 'Pendiente'},${c.fechaPago ? formatearFecha(c.fechaPago) : ''},${(c.cuotaFija * 0.10).toFixed(0)},${c.multaPagada ? 'Sí' : 'No'},${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}\n`;
+            csv += `${loan.nombre},${c.cuota},${formatearFecha(c.fechaCobro)},${c.pagada ? 'Pagada' : estaVencida(c.fechaCobro) ? 'Vencida' : 'Pendiente'},${c.fechaPago ? formatearFecha(c.fechaPago) : ''},${c.notaPago || ''},${c.cuotaFija.toFixed(0)},${c.interes.toFixed(0)},${esSoloInteres ? '0' : c.abonoCapital.toFixed(0)},${c.saldo.toFixed(0)}\n`;
         });
     });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `todos_los_prestamos_${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
+
+    descargarCSV(csv, `prestamos_${new Date().toISOString().slice(0, 10)}.csv`);
 }
 
 function generarInteresMensual(id) {
