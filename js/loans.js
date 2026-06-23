@@ -165,8 +165,10 @@ function toggleCuota(loanId, idx) {
 }
 
 function eliminarPrestamo(id) {
-    if (!confirm('¿Eliminar préstamo?')) return;
-    loans = loans.filter(l => l.id !== id);
+    if (!confirm('¿Eliminar préstamo? Los intereses cobrados quedarán guardados en los reportes.')) return;
+    const loan = loans.find(l => l.id === id);
+    if (!loan) return;
+    loan.archivado = true;
     guardarDatos();
     renderAll();
 }
@@ -263,6 +265,42 @@ function generarInteresMensual(id) {
     guardarDatos();
     renderAll();
     alert(`Interés mensual generado: ${formatMoney(interes)}\nFecha de cobro: ${formatearFecha(fechaCobro)}`);
+}
+
+function registrarPagoInteres(loanId, cuotaIndex) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    const cuota = loan.tabla[cuotaIndex];
+
+    if (cuota.pagada) {
+        alert('Esta cuota ya está pagada completamente.');
+        return;
+    }
+    if (cuota.interesDelMesPagado) {
+        alert('El interés de este período ya fue registrado.');
+        return;
+    }
+
+    const interesMensual = Math.round((loan.capitalPendiente || loan.monto) * (loan.tasa / 100));
+
+    if (!confirm(`¿Confirmar pago de solo intereses por ${formatMoney(interesMensual)}?\nEl capital de ${formatMoney(loan.capitalPendiente || loan.monto)} queda pendiente y la cuota se corre un mes.`)) return;
+
+    cuota.interesDelMesPagado = true;
+    cuota.montoInteresPagado = interesMensual;
+    cuota.fechaPagoInteres = new Date().toISOString();
+
+    // Mover la cuota al siguiente mes
+    const fecha = new Date(cuota.fechaCobro);
+    fecha.setMonth(fecha.getMonth() + 1);
+    if (loan.diaCobro) {
+        const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
+        fecha.setDate(Math.min(loan.diaCobro, ultimoDia));
+    }
+    cuota.fechaCobro = fecha.toISOString();
+
+    guardarDatos();
+    renderAll();
+    alert(`Pago de intereses registrado: ${formatMoney(interesMensual)}`);
 }
 
 function pagarMulta10Porciento(loanId, idx) {

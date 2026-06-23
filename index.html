@@ -9,15 +9,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-                <h1>💰 Gestión de Préstamos — Reportes</h1>
-                <div id="authButtons" style="display:flex;gap:8px">
-                    <button class="btn" onclick="showAuthModal('login')">Iniciar Sesión</button>
-                    <button class="btn btn-primary" onclick="showAuthModal('signup')">Registrarse</button>
-                </div>
-            </div>
-            <p class="small" style="margin-top:6px;color:#64748b">Reportes mensuales, flujo proyectado y comportamiento de pagos.</p>
-            <div class="stats" style="margin-top:12px">
+            <h1>💰 Gestión de Préstamos</h1>
+            <p class="small">Reportes mensuales · flujo proyectado · comportamiento de pagos</p>
+            <div class="stats">
                 <div class="stat-card"><label>Total Prestado</label><div class="value" id="totalPrestado">$0</div></div>
                 <div class="stat-card"><label>Total a Cobrar</label><div class="value" id="totalACobrar">$0</div></div>
                 <div class="stat-card"><label>Capital Restante</label><div class="value" id="capitalRestante">$0</div></div>
@@ -28,7 +22,7 @@
         </div>
 
         <div class="form-section">
-            <h3 style="margin-bottom:10px">➕ Nuevo Préstamo</h3>
+            <h3>➕ Nuevo Préstamo</h3>
             <div class="form-grid">
                 <input id="nombre" type="text" placeholder="Nombre del prestatario">
                 <input id="telefono" type="text" placeholder="Teléfono del prestatario">
@@ -50,18 +44,17 @@
 
         <!-- Loans Section -->
         <div class="loans-section">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-                <h3 style="margin:0;color:#0f172a">Préstamos</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:white;border-radius:10px 10px 0 0;border:1px solid #e2e8f0;border-bottom:none">
+                <h3 style="margin:0;font-size:15px;font-weight:700">Préstamos activos</h3>
                 <div style="display:flex;gap:8px">
-                    <button class="btn" onclick="renderLoans()">Ordenar / Actualizar</button>
-                    <button class="btn btn-primary" onclick="exportarTodosCSV()">Exportar Todos CSV</button>
+                    <button class="btn" onclick="renderLoans()">↻ Actualizar</button>
+                    <button class="btn btn-success" onclick="exportarTodosCSV()">↓ Exportar CSV</button>
                 </div>
             </div>
 
             <!-- Search Container -->
             <div class="search-container">
-                <input id="searchInput" type="text" oninput="filtrarClientes()" placeholder="Buscar cliente por nombre, documento o número de préstamo...">
-                <span class="icon-search">🔍</span>
+                <input id="searchInput" type="text" oninput="filtrarClientes()" placeholder="🔍  Buscar cliente...">
             </div>
 
             <div class="loans-list" id="loansContainer"></div>
@@ -148,7 +141,7 @@
         <!-- Payment Modal -->
         <div id="paymentModal" class="modal" style="display:none;">
             <div class="modal-content">
-                <h3>Pagar Cuota con Excedente (Modificación Automática)</h3>
+                <h3>Pagar cuota completa</h3>
                 <div class="form-group">
                     <label>Cliente:</label>
                     <input id="modalClientName" type="text" readonly>

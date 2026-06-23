@@ -1,26 +1,28 @@
 // ================= UI RENDERING =================
 
 function actualizarEstadisticas() {
-    const tp = loans.reduce((s, l) => s + l.monto, 0);
-    const tac = loans.reduce((s, l) => s + l.totalPagar, 0);
-    const cr = loans.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
-    const ic = loans.reduce((s, l) => s + calcularStats(l).interesesPagados, 0);
-    const vencidas = loans.reduce((s, l) => s + calcularStats(l).cuotasVencidas, 0);
+    const activos = loans.filter(l => !l.archivado);
+    const tp = activos.reduce((s, l) => s + l.monto, 0);
+    const tac = activos.reduce((s, l) => s + l.totalPagar, 0);
+    const cr = activos.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
+    const ic = activos.reduce((s, l) => s + calcularStats(l).interesesPagados, 0);
+    const vencidas = activos.reduce((s, l) => s + calcularStats(l).cuotasVencidas, 0);
     document.getElementById('totalPrestado').textContent = formatMoney(tp);
     document.getElementById('totalACobrar').textContent = formatMoney(tac);
     document.getElementById('capitalRestante').textContent = formatMoney(cr);
     document.getElementById('interesesCobrados').textContent = formatMoney(ic);
-    document.getElementById('prestamosActivos').textContent = loans.length;
+    document.getElementById('prestamosActivos').textContent = activos.length;
     document.getElementById('cuotasVencidasGlobal').textContent = vencidas;
 }
 
 function renderLoans() {
     const container = document.getElementById('loansContainer');
-    if (loans.length === 0) {
+    const activos = loans.filter(l => !l.archivado);
+    if (activos.length === 0) {
         container.innerHTML = `<div class="loan-card">No hay préstamos</div>`;
         return;
     }
-    const ordenados = [...loans].sort((a, b) => {
+    const ordenados = [...activos].sort((a, b) => {
         const A = calcularStats(a);
         const B = calcularStats(b);
         if (A.cuotasVencidas !== B.cuotasVencidas) return B.cuotasVencidas - A.cuotasVencidas;
@@ -80,16 +82,18 @@ function renderLoans() {
                         ${loan.tabla.slice(0, 3).map((c, i) => {
                             const vencida = !c.pagada && estaVencida(c.fechaCobro);
                             const multa = c.cuotaFija * 0.10;
-                            const puedePagarMulta = !c.pagada && !c.multaPagada;
+                            const puedePagarMulta = !c.pagada && !c.multaPagada && vencida;
                             const puedePagarConExcedente = !c.pagada;
+                            const puedePagarSoloInteres = !c.pagada && !c.interesDelMesPagado;
 
-                            return `<tr style="background:${c.pagada ? '#d1fae5' : vencida ? '#fee2e2' : 'transparent'}">
+                            return `<tr style="background:${c.pagada ? '#d1fae5' : c.interesDelMesPagado ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
                                 <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${i})" style="border-radius:999px;padding:6px 8px">${c.pagada ? '✓' : '○'}</button></td>
                                 <td style="padding:6px">${c.cuota}</td>
                                 <td style="padding:6px">
                                     <span id="fechaCobro-${loan.id}-${i}">${formatearFecha(c.fechaCobro)}</span>
                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${i}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
                                     ${c.pagada ? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>' : ''}
+                                    ${c.interesDelMesPagado && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:2px">Int. pagado: ${formatMoney(c.montoInteresPagado)} — ${formatearFecha(c.fechaPagoInteres)}</div>` : ''}
                                 </td>
                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
                                 <td style="padding:6px">${formatMoney(c.interes)}</td>
@@ -98,19 +102,24 @@ function renderLoans() {
                                 <td style="padding:6px">
                                     ${c.multaPagada ?
                                         `<span style="color:#10b981;font-weight:bold">✓ ${formatMoney(c.multa)}</span>
-                                         <div style="font-size:11px;color:#64748b">Pagada: ${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
-                                         :
+                                         <div style="font-size:11px;color:#64748b">${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
+                                        : vencida ?
                                         `<span style="color:#f59e0b">${formatMoney(multa)}</span>`
+                                        : `<span style="color:#94a3b8">—</span>`
                                     }
                                 </td>
                                 <td style="padding:6px">
                                     <div style="display:flex;flex-direction:column;gap:4px">
+                                        ${puedePagarSoloInteres ?
+                                            `<button class="btn" onclick="registrarPagoInteres(${loan.id},${i})" style="background:#0ea5e9;color:white;font-size:11px;padding:4px 8px">Pagar solo interés</button>`
+                                            : ''
+                                        }
                                         ${puedePagarMulta ?
                                             `<button class="btn" onclick="pagarMulta10Porciento(${loan.id},${i})" style="background:#f59e0b;color:white;font-size:11px;padding:4px 8px">Pagar multa 10%</button>`
                                             : ''
                                         }
                                         ${puedePagarConExcedente ?
-                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${i})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar + Excedente (Auto-Ajuste)</button>`
+                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${i})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
                                             : ''
                                         }
                                     </div>
@@ -133,16 +142,18 @@ function renderLoans() {
                                             const actualIndex = i + 3;
                                             const vencida = !c.pagada && estaVencida(c.fechaCobro);
                                             const multa = c.cuotaFija * 0.10;
-                                            const puedePagarMulta = !c.pagada && !c.multaPagada;
+                                            const puedePagarMulta = !c.pagada && !c.multaPagada && vencida;
                                             const puedePagarConExcedente = !c.pagada;
+                                            const puedePagarSoloInteres = !c.pagada && !c.interesDelMesPagado;
 
-                                            return `<tr style="background:${c.pagada ? '#d1fae5' : vencida ? '#fee2e2' : 'transparent'}">
+                                            return `<tr style="background:${c.pagada ? '#d1fae5' : c.interesDelMesPagado ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
                                                 <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${actualIndex})" style="border-radius:999px;padding:6px 8px">${c.pagada ? '✓' : '○'}</button></td>
                                                 <td style="padding:6px">${c.cuota}</td>
                                                 <td style="padding:6px">
                                                     <span id="fechaCobro-${loan.id}-${actualIndex}">${formatearFecha(c.fechaCobro)}</span>
                                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${actualIndex}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
                                                     ${c.pagada ? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>' : ''}
+                                                    ${c.interesDelMesPagado && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:2px">Int. pagado: ${formatMoney(c.montoInteresPagado)} — ${formatearFecha(c.fechaPagoInteres)}</div>` : ''}
                                                 </td>
                                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
                                                 <td style="padding:6px">${formatMoney(c.interes)}</td>
@@ -151,19 +162,24 @@ function renderLoans() {
                                                 <td style="padding:6px">
                                                     ${c.multaPagada ?
                                                         `<span style="color:#10b981;font-weight:bold">✓ ${formatMoney(c.multa)}</span>
-                                                         <div style="font-size:11px;color:#64748b">Pagada: ${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
-                                                         :
+                                                         <div style="font-size:11px;color:#64748b">${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
+                                                        : vencida ?
                                                         `<span style="color:#f59e0b">${formatMoney(multa)}</span>`
+                                                        : `<span style="color:#94a3b8">—</span>`
                                                     }
                                                 </td>
                                                 <td style="padding:6px">
                                                     <div style="display:flex;flex-direction:column;gap:4px">
+                                                        ${puedePagarSoloInteres ?
+                                                            `<button class="btn" onclick="registrarPagoInteres(${loan.id},${actualIndex})" style="background:#0ea5e9;color:white;font-size:11px;padding:4px 8px">Pagar solo interés</button>`
+                                                            : ''
+                                                        }
                                                         ${puedePagarMulta ?
                                                             `<button class="btn" onclick="pagarMulta10Porciento(${loan.id},${actualIndex})" style="background:#f59e0b;color:white;font-size:11px;padding:4px 8px">Pagar multa 10%</button>`
                                                             : ''
                                                         }
                                                         ${puedePagarConExcedente ?
-                                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${actualIndex})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar + Excedente (Auto-Ajuste)</button>`
+                                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${actualIndex})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
                                                             : ''
                                                         }
                                                     </div>
@@ -258,6 +274,8 @@ function renderAll() {
     renderCalendar(currentYear, currentMonth);
     initReportSelectors();
 }
+
+
 
 
 
