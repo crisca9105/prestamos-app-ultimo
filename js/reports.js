@@ -24,11 +24,13 @@ function computeMonthlyReport(year, month) {
                 totalPrev += c.cuotaFija;
                 if (c.pagada) interestPrev += c.interes;
             }
-            // Pagos de solo interés (no cuentan como cuota completa pagada)
-            if (c.interesDelMesPagado && !c.pagada && c.fechaPagoInteres) {
-                const fp = new Date(c.fechaPagoInteres);
-                if (fp >= start && fp <= end) interestThis += c.montoInteresPagado;
-                if (fp >= prevStart && fp <= prevEnd) interestPrev += c.montoInteresPagado;
+            // Historial de pagos de solo interés
+            if (!c.pagada && c.pagosInteres) {
+                c.pagosInteres.forEach(p => {
+                    const fp = new Date(p.fecha);
+                    if (fp >= start && fp <= end) interestThis += p.monto;
+                    if (fp >= prevStart && fp <= prevEnd) interestPrev += p.monto;
+                });
             }
         });
     });
@@ -131,10 +133,12 @@ function computeInterestsByMonth(monthsBack = 12) {
                 const key = ymKey(f);
                 if (map.hasOwnProperty(key)) map[key] += c.interes;
             }
-            if (c.interesDelMesPagado && !c.pagada && c.fechaPagoInteres) {
-                const f = new Date(c.fechaPagoInteres);
-                const key = ymKey(f);
-                if (map.hasOwnProperty(key)) map[key] += c.montoInteresPagado;
+            if (!c.pagada && c.pagosInteres) {
+                c.pagosInteres.forEach(p => {
+                    const f = new Date(p.fecha);
+                    const key = ymKey(f);
+                    if (map.hasOwnProperty(key)) map[key] += p.monto;
+                });
             }
         });
     });

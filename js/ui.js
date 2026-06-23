@@ -84,16 +84,18 @@ function renderLoans() {
                             const multa = c.cuotaFija * 0.10;
                             const puedePagarMulta = !c.pagada && !c.multaPagada && vencida;
                             const puedePagarConExcedente = !c.pagada;
-                            const puedePagarSoloInteres = !c.pagada && !c.interesDelMesPagado;
+                            const puedePagarSoloInteres = !c.pagada;
+                            const historialInteres = c.pagosInteres || [];
+                            const totalInteresPagado = historialInteres.reduce((s, p) => s + p.monto, 0);
 
-                            return `<tr style="background:${c.pagada ? '#d1fae5' : c.interesDelMesPagado ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
+                            return `<tr style="background:${c.pagada ? '#d1fae5' : historialInteres.length > 0 ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
                                 <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${i})" style="border-radius:999px;padding:6px 8px">${c.pagada ? '✓' : '○'}</button></td>
                                 <td style="padding:6px">${c.cuota}</td>
                                 <td style="padding:6px">
                                     <span id="fechaCobro-${loan.id}-${i}">${formatearFecha(c.fechaCobro)}</span>
                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${i}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
                                     ${c.pagada ? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>' : ''}
-                                    ${c.interesDelMesPagado && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:2px">Int. pagado: ${formatMoney(c.montoInteresPagado)} — ${formatearFecha(c.fechaPagoInteres)}</div>` : ''}
+                                    ${historialInteres.length > 0 && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:3px">💰 ${historialInteres.length} pago(s) de interés — total ${formatMoney(totalInteresPagado)}<br>${historialInteres.map(p => `${formatearFecha(p.fecha)}: ${formatMoney(p.monto)}`).join(' · ')}</div>` : ''}
                                 </td>
                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
                                 <td style="padding:6px">${formatMoney(c.interes)}</td>
@@ -144,16 +146,18 @@ function renderLoans() {
                                             const multa = c.cuotaFija * 0.10;
                                             const puedePagarMulta = !c.pagada && !c.multaPagada && vencida;
                                             const puedePagarConExcedente = !c.pagada;
-                                            const puedePagarSoloInteres = !c.pagada && !c.interesDelMesPagado;
+                                            const puedePagarSoloInteres = !c.pagada;
+                                            const historialInteres = c.pagosInteres || [];
+                                            const totalInteresPagado = historialInteres.reduce((s, p) => s + p.monto, 0);
 
-                                            return `<tr style="background:${c.pagada ? '#d1fae5' : c.interesDelMesPagado ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
+                                            return `<tr style="background:${c.pagada ? '#d1fae5' : historialInteres.length > 0 ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
                                                 <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${actualIndex})" style="border-radius:999px;padding:6px 8px">${c.pagada ? '✓' : '○'}</button></td>
                                                 <td style="padding:6px">${c.cuota}</td>
                                                 <td style="padding:6px">
                                                     <span id="fechaCobro-${loan.id}-${actualIndex}">${formatearFecha(c.fechaCobro)}</span>
                                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${actualIndex}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
                                                     ${c.pagada ? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>' : ''}
-                                                    ${c.interesDelMesPagado && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:2px">Int. pagado: ${formatMoney(c.montoInteresPagado)} — ${formatearFecha(c.fechaPagoInteres)}</div>` : ''}
+                                                    ${historialInteres.length > 0 && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:3px">💰 ${historialInteres.length} pago(s) de interés — total ${formatMoney(totalInteresPagado)}<br>${historialInteres.map(p => `${formatearFecha(p.fecha)}: ${formatMoney(p.monto)}`).join(' · ')}</div>` : ''}
                                                 </td>
                                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
                                                 <td style="padding:6px">${formatMoney(c.interes)}</td>

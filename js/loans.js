@@ -276,15 +276,19 @@ function registrarPagoInteres(loanId, cuotaIndex) {
         alert('Esta cuota ya está pagada completamente.');
         return;
     }
-    if (cuota.interesDelMesPagado) {
-        alert('El interés de este período ya fue registrado.');
-        return;
-    }
 
     const interesMensual = Math.round((loan.capitalPendiente || loan.monto) * (loan.tasa / 100));
+    const vecesAntes = (cuota.pagosInteres || []).length;
 
-    if (!confirm(`¿Confirmar pago de solo intereses por ${formatMoney(interesMensual)}?\nEl capital de ${formatMoney(loan.capitalPendiente || loan.monto)} queda pendiente y la cuota se corre un mes.`)) return;
+    if (!confirm(`¿Confirmar pago de intereses por ${formatMoney(interesMensual)}?\nCapital pendiente: ${formatMoney(loan.capitalPendiente || loan.monto)} — se corre un mes más.${vecesAntes > 0 ? `\n(Este cliente ya ha pagado ${vecesAntes} mes(es) solo de interés en esta cuota)` : ''}`)) return;
 
+    if (!cuota.pagosInteres) cuota.pagosInteres = [];
+    cuota.pagosInteres.push({
+        monto: interesMensual,
+        fecha: new Date().toISOString()
+    });
+
+    // También actualizar campos legacy para compatibilidad con reportes anteriores
     cuota.interesDelMesPagado = true;
     cuota.montoInteresPagado = interesMensual;
     cuota.fechaPagoInteres = new Date().toISOString();

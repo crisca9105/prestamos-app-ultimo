@@ -95,6 +95,16 @@ async function cargarDatos() {
                         if (cuota.interesDelMesPagado === undefined) cuota.interesDelMesPagado = false;
                         if (cuota.montoInteresPagado === undefined) cuota.montoInteresPagado = 0;
                         if (cuota.fechaPagoInteres === undefined) cuota.fechaPagoInteres = null;
+                        // Migrar a nuevo formato de historial de pagos de interés
+                        if (!cuota.hasOwnProperty('pagosInteres')) {
+                            cuota.pagosInteres = [];
+                            if (cuota.interesDelMesPagado && cuota.montoInteresPagado) {
+                                cuota.pagosInteres.push({
+                                    monto: cuota.montoInteresPagado,
+                                    fecha: cuota.fechaPagoInteres || new Date().toISOString()
+                                });
+                            }
+                        }
                     });
                 }
                 if (loan.capitalPendiente === undefined) {
