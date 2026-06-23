@@ -1,22 +1,30 @@
 /* === Variables Globales === */
 :root {
-    --primary-color: #3b82f6; /* Azul primario */
-    --secondary-color: #64748b; /* Gris secundario */
-    --success-color: #10b981; /* Verde éxito */
-    --danger-color: #ef4444; /* Rojo peligro */
-    --warning-color: #f59e0b; /* Amarillo advertencia */
-    --bg-color: #f8fafc; /* Color de fondo */
-    --card-bg-color: #ffffff; /* Color de fondo de tarjetas */
-    --text-color: #0f172a; /* Color de texto principal */
-    --border-color: #e2e8f0; /* Color de borde */
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --primary:     #3b82f6;
+    --primary-dark:#2563eb;
+    --success:     #10b981;
+    --danger:      #ef4444;
+    --warning:     #f59e0b;
+    --info:        #0ea5e9;
+    --bg:          #f1f5f9;
+    --surface:     #ffffff;
+    --text:        #0f172a;
+    --text-muted:  #64748b;
+    --border:      #e2e8f0;
+    --shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow:      0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg:   0 10px 25px rgba(0,0,0,0.1), 0 4px 8px rgba(0,0,0,0.05);
+    --radius:      10px;
+    --radius-sm:   6px;
 }
 
-/* === Estilos Base === */
+/* === Reset y Base === */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background: var(--bg);
+    color: var(--text);
     margin: 0;
     padding: 24px;
     font-size: 14px;
@@ -26,158 +34,347 @@ body {
 .container {
     max-width: 1600px;
     margin: 0 auto;
-    padding: 20px;
 }
 
-/* === Encabezado y Estadísticas === */
+.small { font-size: 12px; color: var(--text-muted); }
+
+/* === Header === */
+.header {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+}
+
 .header h1 {
-    font-size: 28px;
-    margin: 0 0 8px 0;
-    color: var(--text-color);
+    font-size: 24px;
+    font-weight: 800;
+    margin: 0 0 4px 0;
+    color: var(--text);
+    letter-spacing: -0.5px;
 }
 
+.header > p {
+    margin: 0 0 16px 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* === Stat Cards === */
 .stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
 }
 
 .stat-card {
-    background-color: var(--card-bg-color);
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow);
+    background: var(--surface);
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
 }
 
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--primary);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.stat-card:nth-child(1)::before { background: var(--primary); }
+.stat-card:nth-child(2)::before { background: #8b5cf6; }
+.stat-card:nth-child(3)::before { background: var(--danger); }
+.stat-card:nth-child(4)::before { background: var(--success); }
+.stat-card:nth-child(5)::before { background: var(--info); }
+.stat-card:nth-child(6)::before { background: var(--warning); }
+
 .stat-card label {
-    font-size: 12px;
-    color: var(--secondary-color);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
     display: block;
     margin-bottom: 4px;
 }
 
 .stat-card .value {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.5px;
 }
 
-/* === Formularios === */
+/* === Formulario === */
 .form-section {
-    background-color: var(--card-bg-color);
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    margin: 24px 0;
-    box-shadow: var(--shadow);
+    background: var(--surface);
+    padding: 20px 24px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.form-section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 14px 0;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+    gap: 12px;
 }
 
-input[type="text"], input[type="number"], input[type="date"], select {
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input:focus, select:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+input:disabled {
+    background: #f8fafc;
+    color: var(--text-muted);
+    cursor: not-allowed;
 }
 
 /* === Botones === */
 .btn {
-    padding: 10px 16px;
-    border: 1px solid var(--border-color);
-    background-color: var(--card-bg-color);
-    color: var(--text-color);
-    border-radius: 6px;
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+    white-space: nowrap;
 }
 
-.btn:hover {
-    background-color: #f1f5f9;
-}
+.btn:hover { background: #f1f5f9; box-shadow: var(--shadow-sm); }
+.btn:active { transform: scale(0.97); }
 
 .btn-primary {
-    background-color: var(--primary-color);
+    background: var(--primary);
     color: white;
-    border-color: var(--primary-color);
+    border-color: var(--primary);
+}
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+.btn-success {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+.btn-success:hover { background: #059669; border-color: #059669; }
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+.btn-danger:hover { background: #dc2626; border-color: #dc2626; }
+
+/* === Badges === */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
 }
 
-.btn-primary:hover {
-    background-color: #2563eb;
+.badge-vencida  { background: #fee2e2; color: #b91c1c; }
+.badge-proxima  { background: #fef3c7; color: #92400e; }
+.badge-hoy      { background: #d1fae5; color: #065f46; }
+
+/* === Sección de Préstamos === */
+.loans-section {
+    margin-bottom: 24px;
 }
 
-/* === Layout Principal === */
-.layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-top: 24px;
-}
-
-/* === Lista de Préstamos === */
-.loans-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.loan-card {
-    background-color: var(--card-bg-color);
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow);
+.loans-section > div:first-child {
+    background: var(--surface);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-bottom: none;
 }
 
 .search-container {
-    margin-bottom: 16px;
+    position: relative;
+    margin-bottom: 0;
+    background: var(--surface);
+    padding: 0 18px 14px;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-bottom: none;
 }
+
+.search-container input {
+    padding-left: 36px;
+}
+
+.icon-search {
+    position: absolute;
+    left: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* === Loan Cards === */
+.loans-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden;
+}
+
+.loan-card {
+    background: var(--surface);
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+}
+
+.loan-card:last-child { border-bottom: none; }
+.loan-card:hover { background: #fafbfc; }
+
+.loan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.loan-info {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+}
+
+.loan-info > div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.loan-info .small { font-size: 11px; }
+
+/* === Tabla de Cuotas === */
+.cuotas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 14px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.cuotas-table thead tr {
+    background: #f1f5f9;
+}
+
+.cuotas-table th {
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid var(--border);
+}
+
+.cuotas-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.cuotas-table tr:last-child td { border-bottom: none; }
 
 /* === Grupos de Cobros === */
 .groups {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
 }
 
 .group-card {
-    background-color: var(--card-bg-color);
+    background: var(--surface);
     padding: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
 }
 
-/* === Calendario y Reportes === */
-.calendar, .report-card {
-    background-color: var(--card-bg-color);
+.group-card h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    color: var(--text);
+}
+
+/* === Calendario === */
+.calendar-section { margin-bottom: 24px; }
+
+.calendar {
+    background: var(--surface);
     padding: 20px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow);
-    margin-bottom: 24px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
 }
 
-.cal-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    text-align: center;
-}
-
-.weekday {
+.cal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 16px;
 }
 
@@ -187,48 +384,229 @@ input:focus, select:focus {
     align-items: center;
 }
 
-/* === Tablas === */
+.month-label {
+    font-size: 16px;
+    font-weight: 700;
+    min-width: 140px;
+    text-align: center;
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    text-align: center;
+}
+
+.weekday {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 0;
+    margin-bottom: 4px;
+}
+
+.day-cell {
+    min-height: 80px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    background: var(--surface);
+    transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+}
+
+.day-cell:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary);
+}
+
+.other-month { opacity: 0.35; }
+
+.day-num {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.events { display: flex; flex-direction: column; gap: 2px; }
+
+.event-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    transition: background 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.event-pill:hover { background: #f1f5f9; }
+
+.event-pill.show-more {
+    justify-content: center;
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.event-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dot-vencida { background: var(--danger); }
+.dot-hoy     { background: var(--warning); }
+.dot-proxima { background: var(--primary); }
+
+.day-total {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-align: right;
+}
+
+/* === Reportes === */
+.reports-section { margin-bottom: 24px; }
+
+.reports {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.report-card {
+    background: var(--surface);
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+.report-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: var(--text);
+}
+
+/* === Gráfico de barras (flujo proyectado) === */
+.mountain {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 100px;
+    padding: 0 4px;
+}
+
+.bar {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+}
+
+.bar > div {
+    width: 100%;
+    background: linear-gradient(to top, var(--primary), #93c5fd);
+    border-radius: 3px 3px 0 0;
+    min-height: 3px;
+    transition: opacity 0.15s;
+}
+
+.bar > div:hover { opacity: 0.8; }
+
+/* === Tablas de Reportes === */
 .table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.table th, .table td {
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    text-align: left;
+    font-size: 13px;
 }
 
 .table th {
-    background-color: #f8fafc;
+    padding: 9px 12px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-align: left;
 }
+
+.table td {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+}
+
+.table tbody tr:hover { background: #f8fafc; }
+
+/* === Historial de clientes === */
+.client-list { display: flex; flex-direction: column; gap: 8px; }
+
+.client-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    transition: background 0.15s;
+}
+
+.client-item:hover { background: #f1f5f9; }
 
 /* === Modales === */
 .modal {
     position: fixed;
     z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    inset: 0;
+    background: rgba(15,23,42,0.5);
     display: flex;
     justify-content: center;
     align-items: center;
+    backdrop-filter: blur(2px);
 }
 
 .modal-content {
-    background-color: var(--card-bg-color);
-    padding: 24px;
-    border-radius: 8px;
+    background: var(--surface);
+    padding: 28px;
+    border-radius: var(--radius);
     width: 90%;
-    max-width: 500px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    max-width: 480px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+}
+
+.modal-content h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
 }
 
 .form-group {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .button-group {
@@ -238,128 +616,13 @@ input:focus, select:focus {
     margin-top: 20px;
 }
 
-/* === Estilos del Calendario === */
-.day-cell {
-    min-height: 80px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    padding: 8px;
-    background-color: var(--card-bg-color);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: transform 0.1s, box-shadow 0.1s;
-}
-
-.day-cell:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-color: var(--primary-color);
-}
-
-.other-month {
-    opacity: 0.4;
-}
-
-.day-num {
-    font-weight: 600;
-    margin-bottom: 4px;
-}
-
-.events {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.event-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 11px;
-    transition: background-color 0.2s;
-}
-
-.event-pill:hover {
-    background-color: #f1f5f9;
-}
-
-.event-pill.show-more {
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--primary-color);
-    text-align: center;
-}
-
-.show-more-btn {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    border: none;
-}
-
-.event-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 5px;
-    flex-shrink: 0;
-}
-
-.dot-vencida {
-    background-color: var(--danger-color); /* Rojo para atrasados */
-}
-
-.dot-hoy {
-    background-color: var(--warning-color); /* Amarillo para hoy */
-}
-
-.dot-proxima {
-    background-color: var(--primary-color); /* Azul para próximos */
-}
-
-.day-total {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--secondary-color);
-    margin-top: 4px;
-    text-align: right;
-}
-
-/* === Puntos de Colores para Eventos del Calendario === */
-.event-dot {
-    width: 8px !important;
-    height: 8px !important;
-    border-radius: 50% !important;
-    display: inline-block !important;
-    margin-right: 5px !important;
-    flex-shrink: 0 !important;
-}
-
-.dot-vencida {
-    background-color: #ef4444 !important; /* Rojo para atrasados */
-}
-
-.dot-hoy {
-    background-color: #f59e0b !important; /* Amarillo para hoy */
-}
-
-.dot-proxima {
-    background-color: #3b82f6 !important; /* Azul para próximos */
-}
-
-/* === Estilos para Notas y Comprobantes === */
+/* === Notas y Comprobantes === */
 .notes-section {
-    margin-top: 12px;
-    padding: 12px;
-    background-color: #f8fafc;
-    border-radius: 8px;
-    border: 1px dashed var(--border-color);
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: #fafbfc;
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--border);
 }
 
 .notes-header {
@@ -372,48 +635,45 @@ input:focus, select:focus {
 .notes-textarea {
     width: 100%;
     min-height: 80px;
-    padding: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
     font-size: 13px;
     resize: vertical;
     font-family: inherit;
+    background: var(--surface);
 }
 
 .notes-textarea:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
 }
 
 .receipts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
     gap: 8px;
     margin-top: 8px;
 }
 
 .receipt-thumbnail {
-    width: 80px;
-    height: 80px;
-    border-radius: 6px;
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
     object-fit: cover;
     cursor: pointer;
-    transition: transform 0.2s;
+    border: 2px solid var(--border);
+    transition: transform 0.15s, border-color 0.15s;
 }
 
-.receipt-thumbnail:hover {
-    transform: scale(1.05);
-}
+.receipt-thumbnail:hover { transform: scale(1.05); border-color: var(--primary); }
 
 .receipt-modal {
     position: fixed;
     z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.8);
+    inset: 0;
+    background: rgba(0,0,0,0.85);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -422,200 +682,93 @@ input:focus, select:focus {
 .receipt-modal img {
     max-width: 90%;
     max-height: 90%;
-    border-radius: 8px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
 }
 
 .file-upload-btn {
-    padding: 6px 12px;
-    background-color: var(--primary-color);
+    padding: 7px 14px;
+    background: var(--primary);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     font-size: 12px;
     font-weight: 600;
+    transition: background 0.15s;
 }
 
-.file-upload-btn:hover {
-    background-color: #2563eb;
-}
-
-.file-input {
-    display: none;
-}
+.file-upload-btn:hover { background: var(--primary-dark); }
+.file-input { display: none; }
 
 .notes-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #fef3c7;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    background: #fef3c7;
     color: #92400e;
-    border-radius: 12px;
+    border-radius: 999px;
     font-size: 11px;
     font-weight: 600;
-    margin-left: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
 }
 
-.notes-badge:hover {
-    background-color: #fde68a;
+.notes-badge:hover { background: #fde68a; }
+
+/* === Show-more button === */
+.show-more-btn {
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s;
 }
 
-/* === Diseño Responsivo === */
+.show-more-btn:hover { opacity: 0.85; }
+
+/* === Responsive: Tablet === */
 @media (max-width: 1024px) {
-    /* Tablet layout */
-    .layout {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    }
-    
-    .form-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-    
-    .groups {
-        grid-template-columns: 1fr;
-    }
+    .reports { grid-template-columns: 1fr; }
+    .groups  { grid-template-columns: 1fr; }
+    .loan-info { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
-    /* Mobile layout */
-    body {
-        padding: 12px;
-    }
-    
-    .container {
-        padding: 8px;
-    }
-    
-    .header h1 {
-        font-size: 22px;
-    }
-    
-    .stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .layout, .loans-section, .calendar-section, .reports-section {
-        display: block;
-    }
-    
-    .cal-grid {
-        grid-template-columns: repeat(7, 1fr);
-        gap: 4px;
-    }
-    
-    .day-cell {
-        min-height: 60px;
-        padding: 4px;
-        font-size: 12px;
-    }
-    
-    .weekday {
-        font-size: 12px;
-        margin-bottom: 8px;
-    }
-    
-    .groups {
-        grid-template-columns: 1fr;
-    }
-    
-    .cal-controls {
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-    
-    .cal-controls button {
-        padding: 6px 10px;
-        font-size: 12px;
-    }
-    
-    .month-label {
-        font-size: 14px;
-        margin: 4px 0;
-    }
-    
-    .loan-info {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .table th, .table td {
-        padding: 6px;
-        font-size: 12px;
-    }
-    
-    .receipts-grid {
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    }
-    
-    .receipt-thumbnail {
-        width: 60px;
-        height: 60px;
-    }
-    
-    .notes-textarea {
-        min-height: 60px;
-        font-size: 12px;
-    }
-    
-    .btn {
-        padding: 6px 12px;
-        font-size: 12px;
-    }
-    
-    .stat-card {
-        padding: 10px;
-    }
-    
-    .stat-card .value {
-        font-size: 16px;
-    }
+    body { padding: 12px; }
+
+    .header { padding: 16px; }
+    .header h1 { font-size: 20px; }
+
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+
+    .loan-info { grid-template-columns: repeat(2, 1fr); }
+
+    .cal-grid { gap: 3px; }
+    .day-cell { min-height: 58px; padding: 4px; }
+    .weekday  { font-size: 10px; }
+
+    .groups { grid-template-columns: 1fr; }
+    .cal-controls { flex-wrap: wrap; gap: 4px; }
+    .month-label { font-size: 14px; }
+
+    .table th, .table td { padding: 7px 8px; font-size: 12px; }
+
+    .receipts-grid { grid-template-columns: repeat(auto-fill, minmax(56px,1fr)); }
+    .receipt-thumbnail { width: 56px; height: 56px; }
+
+    .btn { padding: 7px 12px; font-size: 12px; }
+    .stat-card .value { font-size: 17px; }
 }
 
 @media (max-width: 480px) {
-    /* Small mobile layout */
-    .stats {
-        grid-template-columns: 1fr;
-    }
-    
-    .cal-grid {
-        gap: 2px;
-    }
-    
-    .day-cell {
-        min-height: 50px;
-        padding: 3px;
-    }
-    
-    .weekday {
-        font-size: 11px;
-        margin-bottom: 6px;
-    }
-    
-    .receipts-grid {
-        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-    }
-    
-    .receipt-thumbnail {
-        width: 50px;
-        height: 50px;
-    }
-}
-
-/* Responsive layout classes */
-.loans-section, .calendar-section, .reports-section {
-    width: 100%;
-    margin-bottom: 20px;
-}
-
-@media (min-width: 1025px) {
-    /* Desktop layout - keep original grid */
-    .loans-section, .calendar-section, .reports-section {
-        display: block;
-    }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .cal-grid { gap: 2px; }
+    .day-cell { min-height: 48px; padding: 3px; }
+    .loan-info { grid-template-columns: 1fr 1fr; }
 }

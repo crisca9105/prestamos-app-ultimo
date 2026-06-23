@@ -24,6 +24,12 @@ function computeMonthlyReport(year, month) {
                 totalPrev += c.cuotaFija;
                 if (c.pagada) interestPrev += c.interes;
             }
+            // Pagos de solo interés (no cuentan como cuota completa pagada)
+            if (c.interesDelMesPagado && !c.pagada && c.fechaPagoInteres) {
+                const fp = new Date(c.fechaPagoInteres);
+                if (fp >= start && fp <= end) interestThis += c.montoInteresPagado;
+                if (fp >= prevStart && fp <= prevEnd) interestPrev += c.montoInteresPagado;
+            }
         });
     });
 
@@ -120,10 +126,16 @@ function computeInterestsByMonth(monthsBack = 12) {
     }
     loans.forEach(loan => {
         loan.tabla.forEach(c => {
-            if (!c.pagada) return;
-            const f = new Date(c.fechaPago || c.fechaCobro);
-            const key = ymKey(f);
-            if (map.hasOwnProperty(key)) map[key] += c.interes;
+            if (c.pagada) {
+                const f = new Date(c.fechaPago || c.fechaCobro);
+                const key = ymKey(f);
+                if (map.hasOwnProperty(key)) map[key] += c.interes;
+            }
+            if (c.interesDelMesPagado && !c.pagada && c.fechaPagoInteres) {
+                const f = new Date(c.fechaPagoInteres);
+                const key = ymKey(f);
+                if (map.hasOwnProperty(key)) map[key] += c.montoInteresPagado;
+            }
         });
     });
     return map;
@@ -206,6 +218,8 @@ function initReportSelectors() {
     renderInterestsTable();
     renderClientHistory();
 }
+
+
 
 
 

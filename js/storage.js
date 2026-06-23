@@ -85,13 +85,16 @@ async function cargarDatos() {
         if (result.success && Array.isArray(result.data)) {
             loans = result.data;
             
-            // Backward compatibility: add fine-related fields and capitalPendiente to existing loans
+            // Backward compatibility: add fine-related fields, interest-only fields and capitalPendiente to existing loans
             loans.forEach(loan => {
                 if (loan.tabla) {
                     loan.tabla.forEach(cuota => {
                         if (cuota.multa === undefined) cuota.multa = 0;
                         if (cuota.multaPagada === undefined) cuota.multaPagada = false;
                         if (cuota.fechaPagoMulta === undefined) cuota.fechaPagoMulta = null;
+                        if (cuota.interesDelMesPagado === undefined) cuota.interesDelMesPagado = false;
+                        if (cuota.montoInteresPagado === undefined) cuota.montoInteresPagado = 0;
+                        if (cuota.fechaPagoInteres === undefined) cuota.fechaPagoInteres = null;
                     });
                 }
                 if (loan.capitalPendiente === undefined) {
@@ -100,7 +103,7 @@ async function cargarDatos() {
                 }
             });
             
-            // Backward compatibility: add new properties (telefono, notas, comprobantes) to existing loans
+            // Backward compatibility: add new properties (telefono, notas, comprobantes, archivado) to existing loans
             loans.forEach(loan => {
                 if (!loan.hasOwnProperty('telefono')) {
                     loan.telefono = '';
@@ -110,6 +113,9 @@ async function cargarDatos() {
                 }
                 if (!loan.hasOwnProperty('comprobantes')) {
                     loan.comprobantes = [];
+                }
+                if (!loan.hasOwnProperty('archivado')) {
+                    loan.archivado = false;
                 }
             });
             
