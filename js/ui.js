@@ -136,7 +136,6 @@ function renderLoans() {
                         ${loan.tabla.slice(0, 3).map((c, i) => {
                             const vencida = !c.pagada && estaVencida(c.fechaCobro);
                             const multa = c.cuotaFija * 0.10;
-                            const puedePagarMulta = !c.pagada && !c.multaPagada && vencida;
                             const puedePagarConExcedente = !c.pagada;
                             const puedePagarSoloInteres = !c.pagada;
                             const historialInteres = c.pagosInteres || [];
@@ -168,10 +167,6 @@ function renderLoans() {
                                     <div style="display:flex;flex-direction:column;gap:4px">
                                         ${puedePagarSoloInteres ?
                                             `<button class="btn" onclick="registrarPagoInteres(${loan.id},${i})" style="background:#0ea5e9;color:white;font-size:11px;padding:4px 8px">Pagar solo interés</button>`
-                                            : ''
-                                        }
-                                        ${puedePagarMulta ?
-                                            `<button class="btn" onclick="pagarMulta10Porciento(${loan.id},${i})" style="background:#f59e0b;color:white;font-size:11px;padding:4px 8px">Pagar multa 10%</button>`
                                             : ''
                                         }
                                         ${puedePagarConExcedente ?
@@ -230,10 +225,6 @@ function renderLoans() {
                                                     <div style="display:flex;flex-direction:column;gap:4px">
                                                         ${puedePagarSoloInteres ?
                                                             `<button class="btn" onclick="registrarPagoInteres(${loan.id},${actualIndex})" style="background:#0ea5e9;color:white;font-size:11px;padding:4px 8px">Pagar solo interés</button>`
-                                                            : ''
-                                                        }
-                                                        ${puedePagarMulta ?
-                                                            `<button class="btn" onclick="pagarMulta10Porciento(${loan.id},${actualIndex})" style="background:#f59e0b;color:white;font-size:11px;padding:4px 8px">Pagar multa 10%</button>`
                                                             : ''
                                                         }
                                                         ${puedePagarConExcedente ?
