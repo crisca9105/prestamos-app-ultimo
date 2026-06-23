@@ -119,6 +119,37 @@ function renderProjectedMountain() {
     });
 }
 
+function computeCapitalPrestadoPorMes(monthsBack = 12) {
+    const map = {};
+    const now = new Date();
+    for (let i = monthsBack - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        map[ymKey(d)] = 0;
+    }
+    loans.forEach(loan => {
+        const f = new Date(loan.fechaPrestamo);
+        const key = ymKey(f);
+        if (map.hasOwnProperty(key)) map[key] += loan.monto;
+    });
+    return map;
+}
+
+function renderCapitalPrestadoPorMes() {
+    const data = computeCapitalPrestadoPorMes(12);
+    const tbody = document.getElementById('capitalPrestadoBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    Object.keys(data).forEach(k => {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td'); td1.textContent = monthLabelFromKey(k);
+        const td2 = document.createElement('td');
+        td2.textContent = data[k] > 0 ? formatMoney(data[k]) : '—';
+        if (data[k] > 0) td2.style.fontWeight = '700';
+        tr.appendChild(td1); tr.appendChild(td2);
+        tbody.appendChild(tr);
+    });
+}
+
 function computeInterestsByMonth(monthsBack = 12) {
     const map = {};
     const now = new Date();
@@ -259,6 +290,7 @@ function initReportSelectors() {
     renderInterestsTable();
     renderClientHistory();
     renderMorosidadYRentabilidad();
+    renderCapitalPrestadoPorMes();
 }
 
 
