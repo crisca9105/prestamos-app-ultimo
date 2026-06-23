@@ -270,8 +270,12 @@ function renderLoans() {
     }).join('');
 }
 
+function normalizar(str) {
+    return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 function filtrarClientes() {
-    const texto = document.getElementById("searchInput").value.toLowerCase().trim();
+    const texto = normalizar(document.getElementById("searchInput").value.trim());
     const loanCards = document.querySelectorAll('.loan-card');
 
     if (texto === '') {
@@ -282,9 +286,9 @@ function filtrarClientes() {
     }
 
     loanCards.forEach(card => {
-        const nombre = card.querySelector('div[style*="font-weight:800;font-size:15px"]').textContent.toLowerCase();
+        const nombre = normalizar(card.querySelector('div[style*="font-weight:800;font-size:15px"]').textContent);
         const loanId = card.getAttribute('data-loan-id');
-        const telefono = card.querySelector('.small')?.textContent.toLowerCase() || '';
+        const telefono = normalizar(card.querySelector('.small')?.textContent || '');
 
         if (nombre.includes(texto)) {
             card.style.display = 'block';
