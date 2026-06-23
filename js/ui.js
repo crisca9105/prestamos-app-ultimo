@@ -113,8 +113,9 @@ function renderLoans() {
                     <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
                 </div>
             </div>
-            <div class="loan-info" style="margin-top:10px">
+            <div class="loan-info" style="margin-top:10px;grid-template-columns:repeat(5,1fr)">
                 <div><div class="small">Monto</div><div style="font-weight:800">${formatMoney(loan.monto)}</div></div>
+                <div><div class="small">Tasa mensual</div><div style="font-weight:800;color:#8b5cf6">${loan.tasa}%</div></div>
                 <div><div class="small">Capital restante</div><div style="font-weight:800;color:#ef4444">${formatMoney(s.capitalRestante)}</div></div>
                 <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(loan.cuotaFija)}</div></div>
                 <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados)}</div></div>
