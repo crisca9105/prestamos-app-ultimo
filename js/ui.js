@@ -47,8 +47,11 @@ function actualizarEstadisticas() {
     document.getElementById('totalACobrar').textContent = formatMoney(tac);
     document.getElementById('capitalRestante').textContent = formatMoney(cr);
     document.getElementById('interesesCobrados').textContent = formatMoney(ic);
+    const tasaPromedio = activos.length === 0 ? 0 :
+        (activos.reduce((s, l) => s + l.tasa * l.monto, 0) / activos.reduce((s, l) => s + l.monto, 0)).toFixed(1);
     document.getElementById('prestamosActivos').textContent = activos.length;
     document.getElementById('cuotasVencidasGlobal').textContent = vencidas;
+    document.getElementById('tasaPromedio').textContent = tasaPromedio + '%';
 }
 
 function renderLoans() {
