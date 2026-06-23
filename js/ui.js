@@ -1,5 +1,41 @@
 // ================= UI RENDERING =================
 
+let filtroActivo = 'todos';
+
+function setFiltro(filtro) {
+    filtroActivo = filtro;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('filtro-' + filtro);
+    if (btn) btn.classList.add('active');
+    renderLoans();
+}
+
+function renderResumenDia() {
+    const banner = document.getElementById('dailySummary');
+    if (!banner) return;
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const finHoy = new Date(hoy); finHoy.setHours(23,59,59,999);
+    const finSemana = new Date(hoy); finSemana.setDate(hoy.getDate() + 7);
+    const activos = loans.filter(l => !l.archivado);
+    let cobrosHoy = 0, montoHoy = 0, cobrosVencidos = 0, montoVencido = 0, cobrosSemana = 0, montoSemana = 0;
+    activos.forEach(loan => {
+        loan.tabla.forEach(c => {
+            if (c.pagada) return;
+            const f = new Date(c.fechaCobro); f.setHours(0,0,0,0);
+            if (f.getTime() === hoy.getTime()) { cobrosHoy++; montoHoy += c.cuotaFija; }
+            if (f < hoy) { cobrosVencidos++; montoVencido += c.cuotaFija; }
+            if (f > hoy && f <= finSemana) { cobrosSemana++; montoSemana += c.cuotaFija; }
+        });
+    });
+    const parts = [];
+    if (cobrosVencidos > 0) parts.push(`<span style="color:#ef4444;font-weight:700">⚠️ ${cobrosVencidos} cuota(s) vencida(s) — ${formatMoney(montoVencido)}</span>`);
+    if (cobrosHoy > 0) parts.push(`<span style="color:#f59e0b;font-weight:700">📅 Hoy: ${cobrosHoy} cobro(s) — ${formatMoney(montoHoy)}</span>`);
+    if (cobrosSemana > 0) parts.push(`<span style="color:#3b82f6">📆 Próximos 7 días: ${cobrosSemana} cobro(s) — ${formatMoney(montoSemana)}</span>`);
+    if (parts.length === 0) { banner.style.display = 'none'; return; }
+    banner.style.display = 'flex';
+    banner.innerHTML = parts.join('<span style="color:#cbd5e1;margin:0 10px">|</span>');
+}
+
 function actualizarEstadisticas() {
     const activos = loans.filter(l => !l.archivado);
     const tp = activos.reduce((s, l) => s + l.monto, 0);
@@ -18,11 +54,27 @@ function actualizarEstadisticas() {
 function renderLoans() {
     const container = document.getElementById('loansContainer');
     const activos = loans.filter(l => !l.archivado);
-    if (activos.length === 0) {
-        container.innerHTML = `<div class="loan-card">No hay préstamos</div>`;
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const finSemana = new Date(hoy); finSemana.setDate(hoy.getDate() + 7);
+
+    let filtrados = activos;
+    if (filtroActivo === 'vencidos') {
+        filtrados = activos.filter(l => l.tabla.some(c => !c.pagada && estaVencida(c.fechaCobro)));
+    } else if (filtroActivo === 'semana') {
+        filtrados = activos.filter(l => l.tabla.some(c => {
+            if (c.pagada) return false;
+            const f = new Date(c.fechaCobro); f.setHours(0,0,0,0);
+            return f >= hoy && f <= finSemana;
+        }));
+    } else if (filtroActivo === 'interes') {
+        filtrados = activos.filter(l => l.tabla.some(c => !c.pagada && (c.pagosInteres || []).length > 0));
+    }
+
+    if (filtrados.length === 0) {
+        container.innerHTML = `<div class="loan-card" style="text-align:center;color:#64748b;padding:24px">No hay préstamos que coincidan con el filtro seleccionado.</div>`;
         return;
     }
-    const ordenados = [...activos].sort((a, b) => {
+    const ordenados = [...filtrados].sort((a, b) => {
         const A = calcularStats(a);
         const B = calcularStats(b);
         if (A.cuotasVencidas !== B.cuotasVencidas) return B.cuotasVencidas - A.cuotasVencidas;
@@ -50,8 +102,10 @@ function renderLoans() {
                         ${loan.telefono ? ' • Tel: ' + loan.telefono : ''}
                     </div>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center">
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                     ${botonesExtra}
+                    <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:#f1f5f9">📋 Estado de cuenta</button>
+                    <button class="btn" onclick="registrarAbonoCapital(${loan.id})" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd">↓ Abonar capital</button>
                     <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
                     <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
                 </div>
@@ -94,7 +148,7 @@ function renderLoans() {
                                 <td style="padding:6px">
                                     <span id="fechaCobro-${loan.id}-${i}">${formatearFecha(c.fechaCobro)}</span>
                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${i}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
-                                    ${c.pagada ? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>' : ''}
+                                    ${c.pagada ? `<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>${c.notaPago ? `<div style="font-size:11px;color:#64748b;margin-top:2px">📝 ${c.notaPago}</div>` : ''}` : ''}
                                     ${historialInteres.length > 0 && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:3px">💰 ${historialInteres.length} pago(s) de interés — total ${formatMoney(totalInteresPagado)}<br>${historialInteres.map(p => `${formatearFecha(p.fecha)}: ${formatMoney(p.monto)}`).join(' · ')}</div>` : ''}
                                 </td>
                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
@@ -156,7 +210,7 @@ function renderLoans() {
                                                 <td style="padding:6px">
                                                     <span id="fechaCobro-${loan.id}-${actualIndex}">${formatearFecha(c.fechaCobro)}</span>
                                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${actualIndex}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
-                                                    ${c.pagada ? '<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>' : ''}
+                                                    ${c.pagada ? `<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>${c.notaPago ? `<div style="font-size:11px;color:#64748b;margin-top:2px">📝 ${c.notaPago}</div>` : ''}` : ''}
                                                     ${historialInteres.length > 0 && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:3px">💰 ${historialInteres.length} pago(s) de interés — total ${formatMoney(totalInteresPagado)}<br>${historialInteres.map(p => `${formatearFecha(p.fecha)}: ${formatMoney(p.monto)}`).join(' · ')}</div>` : ''}
                                                 </td>
                                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
@@ -274,6 +328,7 @@ function toggleMoreInstallments(loanId) {
 
 function renderAll() {
     actualizarEstadisticas();
+    renderResumenDia();
     renderLoans();
     renderCalendar(currentYear, currentMonth);
     initReportSelectors();

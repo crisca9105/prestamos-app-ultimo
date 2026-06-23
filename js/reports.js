@@ -215,12 +215,50 @@ function renderClientHistory() {
     });
 }
 
+function computeMorosidadYRentabilidad() {
+    const activos = loans.filter(l => !l.archivado);
+    const totalClientes = activos.length;
+    const clientesMorosos = activos.filter(l => l.tabla.some(c => !c.pagada && estaVencida(c.fechaCobro))).length;
+    const tasaMorosidad = totalClientes === 0 ? 0 : Math.round((clientesMorosos / totalClientes) * 100);
+
+    const interesesTotales = loans.reduce((s, l) => {
+        const pagados = l.tabla.filter(c => c.pagada).reduce((si, c) => si + c.interes, 0);
+        const soloInteres = l.tabla.reduce((si, c) => si + (c.pagosInteres || []).reduce((sp, p) => sp + p.monto, 0), 0);
+        return s + pagados + soloInteres;
+    }, 0);
+    const capitalTotal = loans.reduce((s, l) => s + l.monto, 0);
+    const roi = capitalTotal === 0 ? 0 : ((interesesTotales / capitalTotal) * 100).toFixed(1);
+
+    return { tasaMorosidad, clientesMorosos, totalClientes, interesesTotales, roi, capitalTotal };
+}
+
+function renderMorosidadYRentabilidad() {
+    const el = document.getElementById('morosidadRentabilidad');
+    if (!el) return;
+    const d = computeMorosidadYRentabilidad();
+    const colorMorosidad = d.tasaMorosidad > 30 ? '#ef4444' : d.tasaMorosidad > 10 ? '#f59e0b' : '#10b981';
+    el.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div>
+                <div class="small" style="margin-bottom:4px;text-transform:uppercase;font-weight:700;letter-spacing:.4px">Tasa de morosidad</div>
+                <div style="font-size:32px;font-weight:800;color:${colorMorosidad}">${d.tasaMorosidad}%</div>
+                <div class="small">${d.clientesMorosos} de ${d.totalClientes} clientes con cuotas vencidas</div>
+            </div>
+            <div>
+                <div class="small" style="margin-bottom:4px;text-transform:uppercase;font-weight:700;letter-spacing:.4px">Rentabilidad acumulada</div>
+                <div style="font-size:32px;font-weight:800;color:#10b981">${d.roi}%</div>
+                <div class="small">${formatMoney(d.interesesTotales)} en intereses sobre ${formatMoney(d.capitalTotal)} prestados</div>
+            </div>
+        </div>`;
+}
+
 function initReportSelectors() {
     populateMonthYearSelectors();
     renderMonthlyReport();
     renderProjectedMountain();
     renderInterestsTable();
     renderClientHistory();
+    renderMorosidadYRentabilidad();
 }
 
 

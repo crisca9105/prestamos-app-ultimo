@@ -92,6 +92,7 @@ async function cargarDatos() {
                         if (cuota.multa === undefined) cuota.multa = 0;
                         if (cuota.multaPagada === undefined) cuota.multaPagada = false;
                         if (cuota.fechaPagoMulta === undefined) cuota.fechaPagoMulta = null;
+                        if (cuota.notaPago === undefined) cuota.notaPago = '';
                         if (cuota.interesDelMesPagado === undefined) cuota.interesDelMesPagado = false;
                         if (cuota.montoInteresPagado === undefined) cuota.montoInteresPagado = 0;
                         if (cuota.fechaPagoInteres === undefined) cuota.fechaPagoInteres = null;
@@ -126,6 +127,9 @@ async function cargarDatos() {
                 }
                 if (!loan.hasOwnProperty('archivado')) {
                     loan.archivado = false;
+                }
+                if (!loan.hasOwnProperty('abonosCapital')) {
+                    loan.abonosCapital = [];
                 }
             });
             

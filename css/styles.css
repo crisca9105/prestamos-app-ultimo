@@ -730,6 +730,37 @@ input:disabled {
 
 .show-more-btn:hover { opacity: 0.85; }
 
+/* === Banner del día === */
+.daily-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 11px 18px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    font-size: 13px;
+    box-shadow: var(--shadow-sm);
+}
+
+/* === Botones de filtro === */
+.filtro-btn {
+    padding: 5px 12px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.filtro-btn:hover { border-color: var(--primary); color: var(--primary); }
+.filtro-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
 /* === Responsive: Tablet === */
 @media (max-width: 1024px) {
     .reports { grid-template-columns: 1fr; }

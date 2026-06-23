@@ -145,23 +145,145 @@ function calcularStats(loan) {
 function toggleCuota(loanId, idx) {
     const loan = loans.find(l => l.id === loanId);
     if (!loan) return;
-    
     const cuota = loan.tabla[idx];
-    
-    // Only show confirmation if marking as paid (not already paid)
+
     if (!cuota.pagada) {
         const confirmed = confirm('¿Estás seguro de que esta cuota fue pagada?');
-        if (!confirmed) {
-            return; // User cancelled, don't mark as paid
-        }
+        if (!confirmed) return;
+        const nota = prompt('Nota de pago (opcional — ej: "efectivo", "transferencia"):', '');
+        cuota.notaPago = nota || '';
+    } else {
+        cuota.notaPago = '';
     }
-    
-    // Toggle the payment status
+
     cuota.pagada = !cuota.pagada;
     cuota.fechaPago = cuota.pagada ? new Date().toISOString() : null;
-    
+
     guardarDatos();
     renderAll();
+}
+
+let currentEstadoCuentaLoanId = null;
+
+function registrarAbonoCapital(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+
+    const capitalActual = loan.capitalPendiente || loan.monto;
+    const montoStr = prompt(`Monto del abono al capital:\nCapital pendiente: ${formatMoney(capitalActual)}`);
+    if (!montoStr) return;
+    const monto = parseFloat(montoStr.replace(/[^0-9.]/g, ''));
+    if (!monto || monto <= 0) { alert('Monto inválido'); return; }
+    if (monto > capitalActual) { alert(`El abono no puede superar el capital pendiente (${formatMoney(capitalActual)})`); return; }
+
+    const nota = prompt('Nota (opcional):', '') || '';
+
+    if (!loan.abonosCapital) loan.abonosCapital = [];
+    loan.abonosCapital.push({ monto, fecha: new Date().toISOString(), nota });
+    loan.capitalPendiente = Math.max(0, capitalActual - monto);
+
+    recalcularCuotas(loan, 'A');
+    guardarDatos();
+    renderAll();
+    alert(`Abono de ${formatMoney(monto)} registrado.\nCapital pendiente: ${formatMoney(loan.capitalPendiente)}`);
+}
+
+function abrirEstadoCuenta(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    currentEstadoCuentaLoanId = loanId;
+
+    const stats = calcularStats(loan);
+    const totalInteresSolo = loan.tabla.reduce((s, c) => s + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
+    const totalIntereses = stats.interesesPagados + totalInteresSolo;
+    const totalAbonosCapital = (loan.abonosCapital || []).reduce((s, a) => s + a.monto, 0);
+
+    const pagos = [];
+    loan.tabla.filter(c => c.pagada).forEach(c => pagos.push({
+        fecha: c.fechaPago, tipo: 'Cuota completa', monto: c.cuotaFija,
+        detalle: `Cuota #${c.cuota}${c.notaPago ? ' · ' + c.notaPago : ''}`
+    }));
+    loan.tabla.forEach(c => (c.pagosInteres || []).forEach(p => pagos.push({
+        fecha: p.fecha, tipo: 'Solo interés', monto: p.monto, detalle: `Cuota #${c.cuota}`
+    })));
+    (loan.abonosCapital || []).forEach(a => pagos.push({
+        fecha: a.fecha, tipo: 'Abono capital', monto: a.monto, detalle: a.nota || ''
+    }));
+    pagos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+    const pendientes = loan.tabla.filter(c => !c.pagada);
+
+    document.getElementById('estadoCuentaContent').innerHTML = `
+        <div style="margin-bottom:16px">
+            <div style="font-size:18px;font-weight:800">${loan.nombre}</div>
+            <div class="small">${formatMoney(loan.monto)} prestados · Tasa ${loan.tasa}% mensual · Desde ${formatearFecha(loan.fechaPrestamo)}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">
+            <div class="stat-card"><label>Capital prestado</label><div class="value">${formatMoney(loan.monto)}</div></div>
+            <div class="stat-card" style="border-top-color:#ef4444"><label>Capital pendiente</label><div class="value" style="color:#ef4444">${formatMoney(loan.capitalPendiente || stats.capitalRestante)}</div></div>
+            <div class="stat-card" style="border-top-color:#10b981"><label>Intereses cobrados</label><div class="value" style="color:#10b981">${formatMoney(totalIntereses)}</div></div>
+        </div>
+        <h4 style="margin:0 0 8px;font-size:13px;font-weight:700">Historial de pagos</h4>
+        ${pagos.length === 0 ? '<div class="small" style="padding:12px 0">Sin pagos registrados aún.</div>' : `
+        <table class="table" style="margin-bottom:20px">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Detalle</th></tr></thead>
+            <tbody>${pagos.map(p => `<tr>
+                <td>${formatearFecha(p.fecha)}</td>
+                <td><span class="badge ${p.tipo === 'Cuota completa' ? 'badge-hoy' : p.tipo === 'Solo interés' ? 'badge-proxima' : 'badge-vencida'}">${p.tipo}</span></td>
+                <td><strong>${formatMoney(p.monto)}</strong></td>
+                <td class="small">${p.detalle}</td>
+            </tr>`).join('')}</tbody>
+        </table>`}
+        <h4 style="margin:0 0 8px;font-size:13px;font-weight:700">Cuotas pendientes</h4>
+        ${pendientes.length === 0 ? '<div class="small" style="color:#10b981;padding:8px 0">✓ Todas las cuotas están pagadas.</div>' : `
+        <table class="table">
+            <thead><tr><th>#</th><th>Fecha</th><th>Cuota</th><th>Interés</th><th>Capital</th></tr></thead>
+            <tbody>${pendientes.map(c => `<tr style="${estaVencida(c.fechaCobro) ? 'background:#fee2e2' : ''}">
+                <td>${c.cuota}</td>
+                <td>${formatearFecha(c.fechaCobro)} ${estaVencida(c.fechaCobro) ? '<span class="badge badge-vencida">VENCIDA</span>' : ''}</td>
+                <td>${formatMoney(c.cuotaFija)}</td>
+                <td>${formatMoney(c.interes)}</td>
+                <td>${formatMoney(c.abonoCapital)}</td>
+            </tr>`).join('')}</tbody>
+        </table>`}
+    `;
+
+    document.getElementById('estadoCuentaModal').style.display = 'flex';
+}
+
+function cerrarEstadoCuenta() {
+    document.getElementById('estadoCuentaModal').style.display = 'none';
+}
+
+function exportarEstadoCuentaPDF(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    const contenido = document.getElementById('estadoCuentaContent').innerHTML;
+    const w = window.open('', '_blank');
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+        <title>Estado de Cuenta — ${loan.nombre}</title>
+        <style>
+            body{font-family:Arial,sans-serif;padding:24px;font-size:13px;color:#0f172a}
+            h4{margin:16px 0 8px;font-size:13px}
+            table{width:100%;border-collapse:collapse;margin-bottom:16px}
+            th,td{padding:8px 10px;border:1px solid #e2e8f0;text-align:left;font-size:12px}
+            th{background:#f8fafc;font-weight:700;color:#64748b;text-transform:uppercase;font-size:11px}
+            .stat-card{display:inline-block;padding:10px 14px;border:1px solid #e2e8f0;border-radius:6px;margin:0 6px 6px 0;min-width:140px}
+            .stat-card label{font-size:11px;color:#64748b;display:block;text-transform:uppercase;font-weight:600}
+            .stat-card .value{font-size:18px;font-weight:800}
+            .badge{padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700}
+            .badge-hoy{background:#d1fae5;color:#065f46}
+            .badge-proxima{background:#fef3c7;color:#92400e}
+            .badge-vencida{background:#fee2e2;color:#b91c1c}
+            .small{font-size:12px;color:#64748b}
+        </style></head><body>
+        <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+            <div><h2 style="margin:0 0 4px">Estado de Cuenta</h2><div class="small">Generado: ${new Date().toLocaleDateString('es-CO', {day:'2-digit',month:'long',year:'numeric'})}</div></div>
+        </div>
+        ${contenido}
+        </body></html>`);
+    w.document.close();
+    setTimeout(() => w.print(), 400);
 }
 
 function eliminarPrestamo(id) {
