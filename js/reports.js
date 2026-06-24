@@ -71,6 +71,60 @@ function renderMonthlyReport() {
     document.getElementById('r_interest_prev').textContent = formatMoney(res.interestPrev);
     const varPct = res.totalPrev === 0 ? '—' : (((res.totalThis - res.totalPrev) / res.totalPrev) * 100).toFixed(1) + '%';
     document.getElementById('r_variation').textContent = varPct;
+    renderInteresesEsperados();
+}
+
+function computeInteresesEsperados(year, month) {
+    const start = new Date(year, month, 1);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(year, month + 1, 0);
+    end.setHours(23, 59, 59, 999);
+
+    let esperados = 0;
+    let cobrados = 0;
+
+    loans.filter(l => !l.archivado).forEach(loan => {
+        loan.tabla.forEach(c => {
+            const f = new Date(c.fechaCobro);
+            if (f >= start && f <= end) {
+                esperados += c.interes;
+                if (c.pagada) cobrados += c.interes;
+            }
+            if (!c.pagada && c.pagosInteres) {
+                c.pagosInteres.forEach(p => {
+                    const fp = new Date(p.fecha);
+                    if (fp >= start && fp <= end) cobrados += p.monto;
+                });
+            }
+        });
+    });
+
+    return { esperados, cobrados, pendientes: Math.max(0, esperados - cobrados) };
+}
+
+function renderInteresesEsperados() {
+    const month = parseInt(document.getElementById('reportMonthSelector').value);
+    const year = parseInt(document.getElementById('reportYearSelector').value);
+    const { esperados, cobrados, pendientes } = computeInteresesEsperados(year, month);
+    const pctCobrado = esperados === 0 ? 0 : Math.round((cobrados / esperados) * 100);
+    const container = document.getElementById('interesesEsperadosContent');
+    if (!container) return;
+    container.innerHTML = `
+        <div>
+            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Esperados</div>
+            <div style="font-size:28px;font-weight:800;color:#1e293b">${formatMoney(esperados)}</div>
+            <div class="small">Si todos pagan este mes</div>
+        </div>
+        <div>
+            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Ya cobrados</div>
+            <div style="font-size:28px;font-weight:800;color:#10b981">${formatMoney(cobrados)}</div>
+            <div class="small">${pctCobrado}% del total esperado</div>
+        </div>
+        <div>
+            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Pendientes</div>
+            <div style="font-size:28px;font-weight:800;color:${pendientes > 0 ? '#ef4444' : '#10b981'}">${formatMoney(pendientes)}</div>
+            <div class="small">${pendientes > 0 ? 'Por cobrar este mes' : 'Todo cobrado'}</div>
+        </div>`;
 }
 
 function computeProjectedCashflow(startYear, startMonth, months = 12) {
@@ -293,7 +347,7 @@ function renderEvolucionCapital() {
 
 function initReportSelectors() {
     populateMonthYearSelectors();
-    renderMonthlyReport();
+    renderMonthlyReport(); // también llama renderInteresesEsperados()
     renderProjectedMountain();
     renderInterestsTable();
     renderMorosidadYRentabilidad();
