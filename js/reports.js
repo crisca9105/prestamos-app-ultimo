@@ -192,59 +192,6 @@ function renderInterestsTable() {
     });
 }
 
-function computeClientHistory() {
-    const clients = {};
-    loans.forEach(loan => {
-        const name = loan.nombre;
-        if (!clients[name]) clients[name] = { total: 0, paid: 0, onTime: 0, lateDaysSum: 0, lateCount: 0, vencidas: 0 };
-        loan.tabla.forEach(c => {
-            clients[name].total += 1;
-            if (c.pagada) {
-                clients[name].paid += 1;
-                const due = new Date(c.fechaCobro);
-                due.setHours(0, 0, 0, 0);
-                const paid = new Date(c.fechaPago);
-                paid.setHours(0, 0, 0, 0);
-                const diffDays = Math.round((paid - due) / 86400000);
-                if (diffDays <= 0) clients[name].onTime += 1;
-                else {
-                    clients[name].lateDaysSum += diffDays;
-                    clients[name].lateCount += 1;
-                }
-            } else {
-                if (estaVencida(c.fechaCobro)) clients[name].vencidas += 1;
-            }
-        });
-    });
-    const arr = Object.keys(clients).map(name => {
-        const c = clients[name];
-        const pctOnTime = c.paid === 0 ? 0 : Math.round((c.onTime / c.paid) * 100);
-        const avgLate = c.lateCount === 0 ? 0 : Math.round(c.lateDaysSum / c.lateCount);
-        return { name, total: c.total, paid: c.paid, pctOnTime, avgLate, vencidas: c.vencidas };
-    });
-    arr.sort((a, b) => a.pctOnTime - b.pctOnTime);
-    return arr;
-}
-
-function renderClientHistory() {
-    const list = computeClientHistory();
-    const container = document.getElementById('clientHistoryList');
-    container.innerHTML = '';
-    if (list.length === 0) {
-        container.innerHTML = '<div class="small">Sin datos</div>';
-        return;
-    }
-    list.forEach(c => {
-        let tag = '';
-        if (c.pctOnTime >= 90) tag = `<span class="badge badge-hoy">CUMPLIDO ${c.pctOnTime}%</span>`;
-        else if (c.pctOnTime >= 60) tag = `<span class="badge badge-proxima">REGULAR ${c.pctOnTime}%</span>`;
-        else tag = `<span class="badge badge-vencida">ATRASADO ${c.pctOnTime}%</span>`;
-        const item = document.createElement('div');
-        item.className = 'client-item';
-        item.innerHTML = `<div style="display:flex;flex-direction:column"><div style="font-weight:800">${c.name}</div><div class="small">Pagadas: ${c.paid}/${c.total} • Días atraso prom.: ${c.avgLate} • Vencidas: ${c.vencidas}</div></div><div>${tag}</div>`;
-        container.appendChild(item);
-    });
-}
 
 function computeMorosidadYRentabilidad() {
     const activos = loans.filter(l => !l.archivado);
@@ -288,7 +235,6 @@ function initReportSelectors() {
     renderMonthlyReport();
     renderProjectedMountain();
     renderInterestsTable();
-    renderClientHistory();
     renderMorosidadYRentabilidad();
     renderCapitalPrestadoPorMes();
 }
