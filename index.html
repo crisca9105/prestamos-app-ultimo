@@ -19,6 +19,7 @@
                 <div class="stat-card"><label>Préstamos Activos</label><div class="value" id="prestamosActivos">0</div></div>
                 <div class="stat-card"><label>Cuotas Vencidas</label><div class="value" id="cuotasVencidasGlobal">0</div></div>
                 <div class="stat-card"><label>Tasa Promedio</label><div class="value" id="tasaPromedio">0%</div></div>
+                <div class="stat-card"><label>Efectivo Disponible</label><div class="value" id="efectivoDisponible">$0</div></div>
             </div>
         </div>
 
@@ -43,6 +44,22 @@
             <div style="display:flex;gap:8px;margin-top:8px">
                 <button class="btn btn-primary" onclick="agregarPrestamo()">Agregar Préstamo</button>
                 <button class="btn" onclick="limpiarStorage()">Limpiar Datos</button>
+            </div>
+        </div>
+
+        <!-- Caja Section -->
+        <div class="form-section">
+            <h3>💵 Caja — Efectivo Disponible</h3>
+            <div id="cajaSaldo" style="font-size:36px;font-weight:800;color:#1e293b;margin-bottom:20px">$0</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center">
+                <input id="cajaNota" type="text" placeholder="Nota (ej: Cobré a Juan, Gasté en X)" style="flex:1;min-width:200px">
+                <input id="cajaMonto" type="number" placeholder="Monto" min="1" style="width:160px">
+                <button class="btn btn-success" onclick="registrarMovimientoEfectivo('ingreso')">+ Ingreso</button>
+                <button class="btn btn-danger" onclick="registrarMovimientoEfectivo('egreso')">− Egreso</button>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Últimos movimientos</div>
+            <div id="cajaHistorial">
+                <div class="small" style="color:#94a3b8;padding:8px 0">Sin movimientos registrados.</div>
             </div>
         </div>
 

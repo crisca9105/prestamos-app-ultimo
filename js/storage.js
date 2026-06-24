@@ -166,6 +166,83 @@ async function guardarDatos() {
     }
 }
 
+// ── Efectivo ──────────────────────────────────────────────────────────────────
+
+async function cargarEfectivo() {
+    try {
+        const result = await hacerPeticion('efectivo', 'GET');
+        if (result.success) {
+            efectivoSaldo = result.saldo;
+            efectivoHistorial = result.historial;
+            renderEfectivo();
+        }
+    } catch (error) {
+        console.error('Error cargando efectivo:', error);
+    }
+}
+
+async function guardarMovimientoEfectivo(monto, nota, tipo) {
+    try {
+        const result = await hacerPeticion('efectivo', 'POST', { monto, nota, tipo });
+        if (result.success) {
+            efectivoSaldo = result.saldo;
+            efectivoHistorial = result.historial;
+            renderEfectivo();
+            mostrarNotificacion(`${tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} registrado`, 'success');
+        }
+    } catch (error) {
+        mostrarNotificacion('Error al registrar movimiento: ' + error.message, 'error');
+    }
+}
+
+function renderEfectivo() {
+    const statEl = document.getElementById('efectivoDisponible');
+    if (statEl) statEl.textContent = formatMoney(efectivoSaldo);
+
+    const saldoEl = document.getElementById('cajaSaldo');
+    if (saldoEl) {
+        saldoEl.textContent = formatMoney(efectivoSaldo);
+        saldoEl.style.color = efectivoSaldo >= 0 ? '#1e293b' : '#ef4444';
+    }
+
+    const histEl = document.getElementById('cajaHistorial');
+    if (!histEl) return;
+
+    const ultimos = efectivoHistorial.slice(0, 10);
+    if (ultimos.length === 0) {
+        histEl.innerHTML = '<div class="small" style="color:#94a3b8;padding:8px 0">Sin movimientos registrados.</div>';
+        return;
+    }
+    histEl.innerHTML = ultimos.map(m => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9">
+            <div>
+                <div style="font-weight:600;font-size:13px">${m.nota || '—'}</div>
+                <div class="small">${formatearFecha(m.fecha)}</div>
+            </div>
+            <div style="font-weight:800;font-size:15px;color:${m.tipo === 'ingreso' ? '#10b981' : '#ef4444'}">
+                ${m.tipo === 'ingreso' ? '+' : '−'}${formatMoney(m.monto)}
+            </div>
+        </div>`).join('');
+}
+
+async function registrarMovimientoEfectivo(tipo) {
+    const notaEl = document.getElementById('cajaNota');
+    const montoEl = document.getElementById('cajaMonto');
+    const monto = parseFloat(montoEl.value);
+    const nota = notaEl.value.trim();
+
+    if (!monto || monto <= 0) {
+        mostrarNotificacion('Ingresa un monto válido', 'warning');
+        return;
+    }
+
+    await guardarMovimientoEfectivo(monto, nota, tipo);
+    notaEl.value = '';
+    montoEl.value = '';
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+
 // Limpiar todos los préstamos
 async function limpiarStorage() {
     if (!confirm('¿Borrar todos los préstamos?')) return;

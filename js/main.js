@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load data and render
     cargarDatos();
+    cargarEfectivo();
     renderCalendar(currentYear, currentMonth);
 });
 
