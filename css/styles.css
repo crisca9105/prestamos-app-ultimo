@@ -789,6 +789,8 @@ input:disabled {
 
     .table th, .table td { padding: 7px 8px; font-size: 12px; }
 
+    .cuotas-table th, .cuotas-table td { font-size: 11px; padding: 6px 7px; }
+
     .receipts-grid { grid-template-columns: repeat(auto-fill, minmax(56px,1fr)); }
     .receipt-thumbnail { width: 56px; height: 56px; }
 
@@ -802,4 +804,5 @@ input:disabled {
     .cal-grid { gap: 2px; }
     .day-cell { min-height: 48px; padding: 3px; }
     .loan-info { grid-template-columns: 1fr 1fr; }
+    .cuotas-table th, .cuotas-table td { font-size: 11px; padding: 6px 7px; }
 }

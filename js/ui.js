@@ -121,8 +121,8 @@ function renderLoans() {
                 <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados)}</div></div>
             </div>
             <div style="margin-top:10px;font-size:13px">${s.proximaCuota ? `<div>Próximo: ${formatearFecha(s.proximaCuota.fechaCobro)} ${estaVencida(s.proximaCuota.fechaCobro) ? '<span class="badge badge-vencida">VENCIDA</span>' : ''} ${esProxima(s.proximaCuota.fechaCobro) ? '<span class="badge badge-proxima">PRÓXIMA</span>' : ''}</div>` : ''}${s.cuotasVencidas > 0 ? `<div style="margin-top:6px"><strong style="color:#ef4444">⚠️ ${s.cuotasVencidas} cuota(s) vencida(s)</strong></div>` : ''}</div>
-            <div style="margin-top:10px">
-                <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <div style="margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+                <table class="cuotas-table" style="width:100%;border-collapse:collapse;font-size:13px">
                     <thead>
                         <tr style="text-align:left;color:#475569">
                             <th style="padding:6px">✓</th>
@@ -191,7 +191,7 @@ function renderLoans() {
                         </tr>
                         <tr id="hidden-installments-${loan.id}" style="display:none">
                             <td colspan="${esSoloInteres ? '8' : '9'}" style="padding:0">
-                                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                                <table class="cuotas-table" style="width:100%;border-collapse:collapse;font-size:13px">
                                     <tbody>
                                         ${loan.tabla.slice(3).map((c, i) => {
                                             const actualIndex = i + 3;
