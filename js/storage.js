@@ -458,6 +458,71 @@ async function resetDianaSilvia() {
     renderAll();
 }
 
+async function correccionLuisPolicia() {
+    if (localStorage.getItem('correccionLuisPolicia') === 'true') return;
+    const luis = loans.find(l => l.nombre === 'Luis policía');
+    if (luis && luis.tabla) {
+        // Ajustar a 7 cuotas
+        while (luis.tabla.length < 7) {
+            luis.tabla.push({ ...luis.tabla[0], pagada: false, prorrogada: false, pagosInteres: [] });
+        }
+        luis.tabla = luis.tabla.slice(0, 7);
+
+        const saldoMar = luis.tabla[1].saldo; // saldo después de marzo (cuota 1)
+        const cf = luis.tabla[0].cuotaFija;
+        const interesProrroga = Math.round(saldoMar * luis.tasa / 100);
+        const abonoProrroga = Math.max(0, cf - interesProrroga);
+        const saldoProrroga = Math.max(0, saldoMar - abonoProrroga);
+
+        // Índice 2 (abr): prorrogada
+        luis.tabla[2] = {
+            ...luis.tabla[2],
+            cuota: 3, cuotaFija: cf,
+            interes: interesProrroga, abonoCapital: abonoProrroga, saldo: saldoProrroga,
+            fechaCobro: '2026-04-26', pagada: false, prorrogada: true,
+            soloInteresPagado: true, interesDelMesPagado: true,
+            montoInteresPagado: interesProrroga, fechaPagoInteres: '2026-04-26',
+            pagosInteres: [{ monto: interesProrroga, fecha: '2026-04-26' }],
+            multa: 0, multaPagada: false, fechaPagoMulta: null, notaPago: ''
+        };
+
+        // Índice 3 (may): prorrogada — mismo saldoBase que abr porque no se abonó capital
+        luis.tabla[3] = {
+            ...luis.tabla[3],
+            cuota: 4, cuotaFija: cf,
+            interes: interesProrroga, abonoCapital: abonoProrroga, saldo: saldoProrroga,
+            fechaCobro: '2026-05-26', pagada: false, prorrogada: true,
+            soloInteresPagado: true, interesDelMesPagado: true,
+            montoInteresPagado: interesProrroga, fechaPagoInteres: '2026-05-26',
+            pagosInteres: [{ monto: interesProrroga, fecha: '2026-05-26' }],
+            multa: 0, multaPagada: false, fechaPagoMulta: null, notaPago: ''
+        };
+
+        // Índices 4-6 (jun, jul, ago): cascade desde saldoMar (cuotas 2 y 3 no abonaron capital)
+        const fechas = ['2026-06-26', '2026-07-26', '2026-08-26'];
+        let saldoCascada = saldoMar;
+        for (let i = 4; i <= 6; i++) {
+            const interes = Math.round(saldoCascada * luis.tasa / 100);
+            const abonoCapital = Math.max(0, cf - interes);
+            const saldo = Math.max(0, saldoCascada - abonoCapital);
+            luis.tabla[i] = {
+                ...luis.tabla[i],
+                cuota: i + 1, cuotaFija: cf,
+                interes, abonoCapital, saldo,
+                fechaCobro: fechas[i - 4], pagada: false, prorrogada: false,
+                soloInteresPagado: false, interesDelMesPagado: false,
+                montoInteresPagado: 0, fechaPagoInteres: null,
+                pagosInteres: [],
+                multa: 0, multaPagada: false, fechaPagoMulta: null, notaPago: ''
+            };
+            saldoCascada = saldo;
+        }
+    }
+    localStorage.setItem('correccionLuisPolicia', 'true');
+    await guardarDatos();
+    renderAll();
+}
+
 // Cargar todos los préstamos desde Supabase
 async function cargarDatos() {
     try {
@@ -524,6 +589,7 @@ async function cargarDatos() {
             await correccionDianaSilvia5();
             await correccionDianaSilvia6();
             await resetDianaSilvia();
+            await correccionLuisPolicia();
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
