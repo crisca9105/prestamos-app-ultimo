@@ -82,6 +82,7 @@ function renderLoans() {
                     <div style="display:flex;gap:6px;align-items:center">
                         <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border-color:rgba(96,165,250,0.3)">📋 Ver detalle</button>
                         <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
+                        <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
                     </div>
                 </div>
                 <div class="loan-info" style="margin-top:10px;grid-template-columns:repeat(5,1fr)">
