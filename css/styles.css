@@ -528,12 +528,13 @@ option {
     display: flex;
     align-items: flex-end;
     gap: 4px;
-    height: 100px;
+    height: 160px;
     padding: 0 4px;
 }
 
 .bar {
     flex: 1;
+    height: 100%;
     display: flex;
     align-items: flex-end;
 }
