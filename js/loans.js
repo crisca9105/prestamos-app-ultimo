@@ -159,6 +159,42 @@ function toggleCuota(loanId, idx) {
     cuota.pagada = !cuota.pagada;
     cuota.fechaPago = cuota.pagada ? new Date().toISOString() : null;
 
+    if (cuota.pagada && loan.tipo === 'solo_interes') {
+        const tieneProxima = loan.tabla.slice(idx + 1).some(c => !c.pagada);
+        if (!tieneProxima) {
+            const sumarUnMes = (fechaISO) => {
+                const d = new Date(fechaISO);
+                d.setMonth(d.getMonth() + 1);
+                if (loan.diaCobro) {
+                    const ultimoDia = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                    d.setDate(Math.min(loan.diaCobro, ultimoDia));
+                }
+                return d.toISOString().split('T')[0];
+            };
+            const interesMensual = Math.round(loan.monto * loan.tasa / 100);
+            loan.tabla.push({
+                cuota: loan.tabla.length + 1,
+                cuotaFija: interesMensual,
+                interes: interesMensual,
+                abonoCapital: 0,
+                saldo: loan.monto,
+                fechaCobro: sumarUnMes(cuota.fechaCobro),
+                pagada: false,
+                prorrogada: false,
+                pagosInteres: [],
+                multa: 0,
+                multaPagada: false,
+                fechaPagoMulta: null,
+                notaPago: '',
+                interesDelMesPagado: false,
+                soloInteresPagado: false,
+                montoInteresPagado: 0,
+                fechaPagoInteres: null,
+                fechaPago: null
+            });
+        }
+    }
+
     guardarDatos();
     renderAll();
 }
