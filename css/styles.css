@@ -523,8 +523,6 @@ option {
     color: var(--text);
 }
 
-/* === Gráfico de barras (flujo proyectado) === */
-
 /* === Tablas de Reportes === */
 .table {
     width: 100%;
