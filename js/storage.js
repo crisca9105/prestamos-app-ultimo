@@ -416,6 +416,48 @@ async function correccionDianaSilvia6() {
     renderAll();
 }
 
+async function resetDianaSilvia() {
+    if (localStorage.getItem('resetDianaSilvia') === 'true') return;
+    const diana = loans.find(l => l.nombre === 'Diana Silvia último');
+    if (diana && diana.tabla) {
+        diana.tabla = diana.tabla.slice(0, 6);
+        let saldoBase = diana.tabla[0].saldo;
+        const cf = diana.tabla[0].cuotaFija;
+        for (let i = 1; i <= 5; i++) {
+            const interes = Math.round(saldoBase * diana.tasa / 100);
+            const abonoCapital = Math.max(0, cf - interes);
+            const saldo = Math.max(0, saldoBase - abonoCapital);
+            const d = new Date('2026-02-05');
+            d.setMonth(d.getMonth() + i);
+            d.setDate(5);
+            diana.tabla[i] = {
+                ...diana.tabla[i],
+                cuota: i + 1,
+                cuotaFija: cf,
+                interes,
+                abonoCapital,
+                saldo,
+                fechaCobro: d.toISOString().split('T')[0],
+                pagada: false,
+                prorrogada: false,
+                pagosInteres: [],
+                soloInteresPagado: false,
+                interesDelMesPagado: false,
+                montoInteresPagado: 0,
+                fechaPagoInteres: null,
+                multa: 0,
+                multaPagada: false,
+                fechaPagoMulta: null,
+                notaPago: ''
+            };
+            saldoBase = saldo;
+        }
+    }
+    localStorage.setItem('resetDianaSilvia', 'true');
+    await guardarDatos();
+    renderAll();
+}
+
 // Cargar todos los préstamos desde Supabase
 async function cargarDatos() {
     try {
@@ -481,6 +523,7 @@ async function cargarDatos() {
             await correccionDianaSilvia4();
             await correccionDianaSilvia5();
             await correccionDianaSilvia6();
+            await resetDianaSilvia();
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
