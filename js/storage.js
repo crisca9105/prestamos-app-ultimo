@@ -77,6 +77,51 @@ async function hacerPeticion(endpoint, method = 'GET', body = null) {
     }
 }
 
+async function corregirFechasCuotas() {
+    if (localStorage.getItem('fechasCorregidas') === 'true') return;
+
+    const sumarMes = (fechaISO, dia) => {
+        const d = new Date(fechaISO);
+        d.setMonth(d.getMonth() + 1);
+        if (dia) {
+            const ultimoDia = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+            d.setDate(Math.min(dia, ultimoDia));
+        }
+        return d.toISOString().split('T')[0];
+    };
+
+    let huboCambios = false;
+
+    loans.forEach(loan => {
+        if (!loan.tabla || loan.tabla.length === 0) return;
+
+        const dia = loan.diaCobro || new Date(loan.tabla[0].fechaCobro).getDate();
+        const primeraNoPagadaIdx = loan.tabla.findIndex(c => !c.pagada);
+        if (primeraNoPagadaIdx === -1) return; // todas pagadas
+
+        // Punto de partida: última cuota pagada, o primera cuota no pagada como ancla
+        let fechaBase = primeraNoPagadaIdx > 0
+            ? loan.tabla[primeraNoPagadaIdx - 1].fechaCobro
+            : loan.tabla[0].fechaCobro;
+        const desdeIdx = primeraNoPagadaIdx > 0 ? primeraNoPagadaIdx : 1;
+
+        for (let i = desdeIdx; i < loan.tabla.length; i++) {
+            const nuevaFecha = sumarMes(fechaBase, dia);
+            if (loan.tabla[i].fechaCobro.split('T')[0] !== nuevaFecha) {
+                loan.tabla[i].fechaCobro = nuevaFecha;
+                huboCambios = true;
+            }
+            fechaBase = nuevaFecha;
+        }
+    });
+
+    localStorage.setItem('fechasCorregidas', 'true');
+
+    if (huboCambios) {
+        await guardarDatos();
+    }
+}
+
 // Cargar todos los préstamos desde Supabase
 async function cargarDatos() {
     try {
@@ -133,6 +178,7 @@ async function cargarDatos() {
                 }
             });
             
+            await corregirFechasCuotas();
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
