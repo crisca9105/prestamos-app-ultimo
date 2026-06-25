@@ -183,19 +183,20 @@ function computeProjectedCashflow(startYear, startMonth, months = 12) {
         const key = ymKey(d);
         res[key] = 0;
     }
-    loans.forEach(loan => {
+    loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
-            const f = new Date(c.fechaCobro);
-            const key = ymKey(f);
-            if (res.hasOwnProperty(key)) res[key] += c.cuotaFija;
+            if (c.pagada || c.prorrogada) return;
+            const [y, m, d] = c.fechaCobro.split('-').map(Number);
+            const key = ymKey(new Date(y, m - 1, d));
+            if (res.hasOwnProperty(key)) res[key] += (c.cuotaFija || c.interes || 0);
         });
     });
     return res;
 }
 
 function renderProjectedMountain() {
-    const start = new Date(currentYear, currentMonth, 1);
-    const data = computeProjectedCashflow(start.getFullYear(), start.getMonth(), 12);
+    const data = computeProjectedCashflow(currentYear, currentMonth, 12);
+    console.log('[FLUJO PROYECTADO]', data);
     const container = document.getElementById('projectedMountain');
     container.innerHTML = '';
     const labels = document.getElementById('projLabels');
@@ -204,7 +205,7 @@ function renderProjectedMountain() {
     const max = Math.max(...values, 1);
     Object.keys(data).forEach(key => {
         const val = data[key];
-        const heightPct = Math.round((val / max) * 100);
+        const heightPct = Math.max(Math.round((val / max) * 100), val > 0 ? 4 : 0);
         const barWrap = document.createElement('div');
         barWrap.className = 'bar';
         const bar = document.createElement('div');
@@ -213,10 +214,7 @@ function renderProjectedMountain() {
         barWrap.appendChild(bar);
         container.appendChild(barWrap);
         const lbl = document.createElement('div');
-        lbl.style.width = '100%';
-        lbl.style.textAlign = 'center';
-        lbl.style.fontSize = '11px';
-        lbl.style.color = '#475569';
+        lbl.style.cssText = 'width:100%;text-align:center;font-size:11px;color:#475569';
         lbl.textContent = monthLabelFromKey(key).split(' ')[0];
         labels.appendChild(lbl);
     });
