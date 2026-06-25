@@ -22,9 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCalendar(currentYear, currentMonth);
     });
 
-    // Load data and render
-    cargarDatos();
-    cargarEfectivo();
+    // Load data and render (efectivo se carga después para que loans[] esté disponible en el snapshot)
+    cargarDatos().then(() => cargarEfectivo());
     renderCalendar(currentYear, currentMonth);
 });
 

@@ -322,6 +322,46 @@ function computeCapitalAtDate(dateStr) {
     return total;
 }
 
+function renderHistorialSnapshots() {
+    const el = document.getElementById('evolucionHistorialContent');
+    if (!el) return;
+
+    const snaps = (efectivoSnapshots || []).slice(-24);
+
+    el.innerHTML = `<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:12px">Historial real de capital</div>`;
+
+    if (snaps.length < 2) {
+        el.innerHTML += `<div class="small" style="color:#94a3b8;padding:8px 0">El historial se irá construyendo automáticamente cada mes al abrir la app.</div>`;
+        return;
+    }
+
+    const filas = snaps.map((s, i) => {
+        const variacion = i === 0 ? null : s.capital - snaps[i - 1].capital;
+        const colorVar = variacion === null ? '#94a3b8' : variacion >= 0 ? '#10b981' : '#ef4444';
+        const signVar = variacion === null ? '' : variacion >= 0 ? '+' : '';
+        const [y, m, d] = s.fecha.split('-').map(Number);
+        const labelFecha = new Date(y, m - 1, d).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
+        return `<tr>
+            <td style="padding:8px 12px;color:#e2e8f0;font-size:13px">${labelFecha}</td>
+            <td style="padding:8px 12px;color:#e2e8f0;font-weight:600;font-size:13px">${formatMoney(s.capital)}</td>
+            <td style="padding:8px 12px;color:${colorVar};font-weight:600;font-size:13px">${variacion === null ? '—' : signVar + formatMoney(variacion)}</td>
+        </tr>`;
+    }).reverse().join('');
+
+    el.innerHTML += `<div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+                <tr style="border-bottom:1px solid #1e3a5f">
+                    <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Fecha</th>
+                    <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Capital registrado</th>
+                    <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Variación vs mes anterior</th>
+                </tr>
+            </thead>
+            <tbody>${filas}</tbody>
+        </table>
+    </div>`;
+}
+
 function renderEvolucionCapital() {
     const dateInput = document.getElementById('evolucionFecha');
     const container = document.getElementById('evolucionCapitalContent');
@@ -356,6 +396,8 @@ function renderEvolucionCapital() {
             <div style="font-size:28px;font-weight:800;color:${colorDiff}">${signDiff}${formatMoney(diff)}</div>
             <div class="small">${pct !== null ? `${signDiff}${pct}% respecto a la fecha seleccionada` : '—'}</div>
         </div>`;
+
+    renderHistorialSnapshots();
 }
 
 function initReportSelectors() {
@@ -369,6 +411,7 @@ function initReportSelectors() {
     hace1ano.setFullYear(hace1ano.getFullYear() - 1);
     document.getElementById('evolucionFecha').value = hace1ano.toISOString().slice(0, 10);
     renderEvolucionCapital();
+    renderHistorialSnapshots();
 }
 
 

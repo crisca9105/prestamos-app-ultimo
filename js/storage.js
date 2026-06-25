@@ -174,10 +174,41 @@ async function cargarEfectivo() {
         if (result.success) {
             efectivoSaldo = result.saldo;
             efectivoHistorial = result.historial;
+            efectivoSnapshots = result.snapshots_capital ?? [];
             renderEfectivo();
+            await verificarYGuardarSnapshot();
         }
     } catch (error) {
         console.error('Error cargando efectivo:', error);
+    }
+}
+
+async function verificarYGuardarSnapshot() {
+    const hoy = new Date().toISOString().split('T')[0];
+    const ultimo = efectivoSnapshots[efectivoSnapshots.length - 1];
+
+    if (ultimo) {
+        const dias = Math.floor((new Date(hoy) - new Date(ultimo.fecha)) / 86400000);
+        if (dias < 30) return;
+    }
+
+    const capitalTotal = loans
+        .filter(l => !l.archivado)
+        .reduce((sum, l) => {
+            if (l.capitalPendiente !== undefined) return sum + l.capitalPendiente;
+            const pagado = (l.tabla || []).filter(c => c.pagada).reduce((s, c) => s + c.abonoCapital, 0);
+            return sum + (l.monto - pagado);
+        }, 0);
+
+    efectivoSnapshots = [...efectivoSnapshots, { fecha: hoy, capital: capitalTotal }].slice(-24);
+    await guardarSnapshotCapital();
+}
+
+async function guardarSnapshotCapital() {
+    try {
+        await hacerPeticion('efectivo', 'POST', { tipo: 'snapshot', snapshots_capital: efectivoSnapshots });
+    } catch (error) {
+        console.error('Error guardando snapshot de capital:', error);
     }
 }
 

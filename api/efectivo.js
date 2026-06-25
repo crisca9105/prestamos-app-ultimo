@@ -26,19 +26,20 @@ export default async function handler(req, res) {
     try {
       const { data, error } = await supabase
         .from('efectivo')
-        .select('saldo, historial')
+        .select('saldo, historial, snapshots_capital')
         .eq('id', 1)
         .single();
 
       if (error && error.code === 'PGRST116') {
-        return res.status(200).json({ success: true, saldo: 0, historial: [] });
+        return res.status(200).json({ success: true, saldo: 0, historial: [], snapshots_capital: [] });
       }
       if (error) throw error;
 
       return res.status(200).json({
         success: true,
         saldo: data.saldo ?? 0,
-        historial: data.historial ?? []
+        historial: data.historial ?? [],
+        snapshots_capital: data.snapshots_capital ?? []
       });
     } catch (error) {
       console.error('Efectivo GET error:', error);
@@ -49,7 +50,19 @@ export default async function handler(req, res) {
   // POST — registrar un movimiento (ingreso o egreso)
   if (req.method === 'POST') {
     try {
-      const { monto, nota, tipo } = req.body;
+      const { monto, nota, tipo, snapshots_capital } = req.body;
+
+      // Guardar snapshots de capital sin afectar saldo/historial
+      if (tipo === 'snapshot') {
+        if (!Array.isArray(snapshots_capital)) {
+          return res.status(400).json({ error: 'snapshots_capital debe ser un array' });
+        }
+        const { error } = await supabase
+          .from('efectivo')
+          .upsert({ id: 1, snapshots_capital, updated_at: new Date().toISOString() });
+        if (error) throw error;
+        return res.status(200).json({ success: true, snapshots_capital });
+      }
 
       if (!['ingreso', 'egreso'].includes(tipo) || typeof monto !== 'number' || monto <= 0) {
         return res.status(400).json({ error: 'Body inválido: se requiere monto > 0 y tipo "ingreso"|"egreso"' });

@@ -4,6 +4,7 @@
 let loans = [];
 let efectivoSaldo = 0;
 let efectivoHistorial = [];
+let efectivoSnapshots = [];
 
 function formatearFecha(f) {
     return new Date(f).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
