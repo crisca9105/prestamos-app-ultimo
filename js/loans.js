@@ -445,10 +445,10 @@ function registrarPagoInteres(loanId, cuotaIndex) {
         return;
     }
 
-    const interesMensual = Math.round((loan.capitalPendiente || loan.monto) * (loan.tasa / 100));
+    const interesMensual = Math.round(cuota.interes);
     const vecesAntes = (cuota.pagosInteres || []).length;
 
-    if (!confirm(`¿Confirmar pago de intereses por ${formatMoney(interesMensual)}?\nCapital pendiente: ${formatMoney(loan.capitalPendiente || loan.monto)}${vecesAntes > 0 ? `\n(Este cliente ya ha pagado ${vecesAntes} mes(es) solo de interés en esta cuota)` : ''}`)) return;
+    if (!confirm(`¿Confirmar pago de intereses por ${formatMoney(interesMensual)}?${vecesAntes > 0 ? `\n(Este cliente ya ha pagado ${vecesAntes} mes(es) solo de interés en esta cuota)` : ''}`)) return;
 
     if (!cuota.pagosInteres) cuota.pagosInteres = [];
     cuota.pagosInteres.push({
