@@ -692,6 +692,8 @@ function renderEfectivo() {
         saldoEl.textContent = formatMoney(efectivoSaldo);
         saldoEl.style.cssText = `font-size:32px;font-weight:700;margin-bottom:1rem;color:${efectivoSaldo > 0 ? '#34d399' : efectivoSaldo === 0 ? '#94a3b8' : '#ef4444'}`;
     }
+
+    if (typeof renderHistorialSnapshots === 'function') renderHistorialSnapshots();
 }
 
 async function registrarMovimientoEfectivo(tipo) {
