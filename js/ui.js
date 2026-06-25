@@ -131,7 +131,6 @@ function renderLoans() {
                             <th style="padding:6px">Interés</th>
                             ${esSoloInteres ? '' : '<th style="padding:6px">Capital</th>'}
                             <th style="padding:6px">Saldo</th>
-                            <th style="padding:6px">Multa 10%</th>
                             <th style="padding:6px">Acciones</th>
                         </tr>
                     </thead>
@@ -158,15 +157,6 @@ function renderLoans() {
                                 ${esSoloInteres ? '' : `<td style="padding:6px">${formatMoney(c.abonoCapital)}</td>`}
                                 <td style="padding:6px"><strong>${formatMoney(c.saldo)}</strong></td>
                                 <td style="padding:6px">
-                                    ${c.multaPagada ?
-                                        `<span style="color:#10b981;font-weight:bold">✓ ${formatMoney(c.multa)}</span>
-                                         <div style="font-size:11px;color:#64748b">${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
-                                        : vencida ?
-                                        `<span style="color:#f59e0b">${formatMoney(multa)}</span>`
-                                        : `<span style="color:#94a3b8">—</span>`
-                                    }
-                                </td>
-                                <td style="padding:6px">
                                     <div style="display:flex;flex-direction:column;gap:4px">
                                         ${puedePagarSoloInteres ?
                                             `<button class="btn" onclick="registrarPagoInteres(${loan.id},${i})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);font-size:11px;padding:4px 8px">Pagar solo interés</button>`
@@ -182,22 +172,21 @@ function renderLoans() {
                         }).join('')}
                         ${loan.tabla.length > 3 ? `
                         <tr id="show-more-row-${loan.id}">
-                            <td colspan="${esSoloInteres ? '8' : '9'}" style="text-align:center;padding:12px 0">
+                            <td colspan="${esSoloInteres ? '7' : '8'}" style="text-align:center;padding:12px 0">
                                 <button class="btn show-more-btn" onclick="toggleMoreInstallments(${loan.id})" style="background:#3b82f6;color:white">
                                     +${loan.tabla.length - 3} más cuotas
                                 </button>
                             </td>
                         </tr>
                         <tr id="hidden-installments-${loan.id}" style="display:none">
-                            <td colspan="${esSoloInteres ? '8' : '9'}" style="padding:0">
+                            <td colspan="${esSoloInteres ? '7' : '8'}" style="padding:0">
                                 <table class="cuotas-table" style="width:100%;border-collapse:collapse;font-size:13px">
                                     <tbody>
                                         ${loan.tabla.slice(3).map((c, i) => {
                                             const actualIndex = i + 3;
                                             const vencida = !c.pagada && estaVencida(c.fechaCobro);
                                             const multa = c.cuotaFija * 0.10;
-                                            const puedePagarMulta = !c.pagada && !c.multaPagada && vencida;
-                                            const puedePagarConExcedente = !c.pagada;
+const puedePagarConExcedente = !c.pagada;
                                             const puedePagarSoloInteres = !c.pagada;
                                             const historialInteres = c.pagosInteres || [];
                                             const totalInteresPagado = historialInteres.reduce((s, p) => s + p.monto, 0);
@@ -215,15 +204,6 @@ function renderLoans() {
                                                 <td style="padding:6px">${formatMoney(c.interes)}</td>
                                                 ${esSoloInteres ? '' : `<td style="padding:6px">${formatMoney(c.abonoCapital)}</td>`}
                                                 <td style="padding:6px"><strong>${formatMoney(c.saldo)}</strong></td>
-                                                <td style="padding:6px">
-                                                    ${c.multaPagada ?
-                                                        `<span style="color:#10b981;font-weight:bold">✓ ${formatMoney(c.multa)}</span>
-                                                         <div style="font-size:11px;color:#64748b">${c.fechaPagoMulta ? formatearFecha(c.fechaPagoMulta) : ''}</div>`
-                                                        : vencida ?
-                                                        `<span style="color:#f59e0b">${formatMoney(multa)}</span>`
-                                                        : `<span style="color:#94a3b8">—</span>`
-                                                    }
-                                                </td>
                                                 <td style="padding:6px">
                                                     <div style="display:flex;flex-direction:column;gap:4px">
                                                         ${puedePagarSoloInteres ?
