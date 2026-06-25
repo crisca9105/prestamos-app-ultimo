@@ -163,7 +163,7 @@ function renderLoans() {
                                             : ''
                                         }
                                         ${puedePagarConExcedente ?
-                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${i})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
+                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${i})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);font-size:11px;padding:4px 8px">Cuota + excedente</button>`
                                             : ''
                                         }
                                     </div>
@@ -211,7 +211,7 @@ const puedePagarConExcedente = !c.pagada;
                                                             : ''
                                                         }
                                                         ${puedePagarConExcedente ?
-                                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${actualIndex})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
+                                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${actualIndex})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);font-size:11px;padding:4px 8px">Cuota + excedente</button>`
                                                             : ''
                                                         }
                                                     </div>
