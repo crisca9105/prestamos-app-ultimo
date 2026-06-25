@@ -342,6 +342,33 @@ async function correccionDianaSilvia4() {
     renderAll();
 }
 
+async function correccionDianaSilvia5() {
+    if (localStorage.getItem('correccionDianaSilvia5') === 'true') return;
+    const diana = loans.find(l => l.nombre === 'Diana Silvia último');
+    if (diana && diana.tabla) {
+        let saldoBase = 1727369;
+        let mesOffset = 1; // índice 2 = abr = mar + 1
+        for (let i = 2; i < diana.tabla.length; i++) {
+            if (diana.tabla[i].pagada || diana.tabla[i].prorrogada) continue;
+            const interes = Math.round(saldoBase * 0.08);
+            const abonoCapital = Math.max(0, diana.tabla[i].cuotaFija - interes);
+            const saldo = Math.max(0, saldoBase - abonoCapital);
+            const d = new Date('2026-03-05');
+            d.setMonth(d.getMonth() + mesOffset);
+            d.setDate(5);
+            diana.tabla[i].fechaCobro = d.toISOString().split('T')[0];
+            diana.tabla[i].interes = interes;
+            diana.tabla[i].abonoCapital = abonoCapital;
+            diana.tabla[i].saldo = saldo;
+            saldoBase = saldo;
+            mesOffset++;
+        }
+    }
+    localStorage.setItem('correccionDianaSilvia5', 'true');
+    await guardarDatos();
+    renderAll();
+}
+
 // Cargar todos los préstamos desde Supabase
 async function cargarDatos() {
     try {
@@ -405,6 +432,7 @@ async function cargarDatos() {
             await correccionDianaSilvia2();
             await correccionDianaSilvia3();
             await correccionDianaSilvia4();
+            await correccionDianaSilvia5();
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
