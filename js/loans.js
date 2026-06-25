@@ -520,7 +520,14 @@ function registrarPagoInteres(loanId, cuotaIndex) {
             fechaPagoInteres: null
         };
 
+        console.log('[PRORROGAR] ANTES de insertar — total cuotas:', loan.tabla.length);
+        console.log('[PRORROGAR] cuotaIndex:', cuotaIndex, '| saldoBase:', saldoBase);
+        console.log('[PRORROGAR] nuevaCuota:', { interes: interesNueva, abonoCapital: abonoNuevo, saldo: saldoNuevo, fechaCobro: nuevaCuota.fechaCobro });
+
         loan.tabla.splice(cuotaIndex + 1, 0, nuevaCuota);
+
+        console.log('[PRORROGAR] DESPUÉS de insertar — total cuotas:', loan.tabla.length);
+        console.log('[PRORROGAR] cuota en idx', cuotaIndex + 1, ':', { interes: loan.tabla[cuotaIndex + 1].interes, abonoCapital: loan.tabla[cuotaIndex + 1].abonoCapital, saldo: loan.tabla[cuotaIndex + 1].saldo });
 
         // Recalcular en cascada desde la cuota después de la nueva
         let saldoCascada = saldoNuevo;
@@ -533,6 +540,7 @@ function registrarPagoInteres(loanId, cuotaIndex) {
             loan.tabla[i].abonoCapital = na;
             loan.tabla[i].saldo = saldoCascada;
             loan.tabla[i].fechaCobro = sumarUnMes(loan.tabla[i].fechaCobro);
+            console.log('[PRORROGAR] cascada idx', i, ':', { interes: ni, abonoCapital: na, saldo: saldoCascada, fechaCobro: loan.tabla[i].fechaCobro });
         }
 
         // Renumerar todas las cuotas
