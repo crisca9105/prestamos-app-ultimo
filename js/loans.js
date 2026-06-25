@@ -489,12 +489,12 @@ function registrarPagoInteres(loanId, cuotaIndex) {
             return d.toISOString().split('T')[0];
         };
 
-        // Mover fechaCobro de la cuota actual y todas las siguientes
-        for (let i = cuotaIndex; i < loan.tabla.length; i++) {
+        // Mover fechaCobro solo de las cuotas SIGUIENTES (la actual no se mueve)
+        for (let i = cuotaIndex + 1; i < loan.tabla.length; i++) {
             loan.tabla[i].fechaCobro = sumarUnMes(loan.tabla[i].fechaCobro);
         }
 
-        // Recalcular interés de cuotas futuras no pagadas (cuotas_fijas)
+        // Recalcular interés, abonoCapital y saldo de las cuotas movidas no pagadas
         if (loan.tipo === 'cuotas_fijas') {
             for (let i = cuotaIndex + 1; i < loan.tabla.length; i++) {
                 if (loan.tabla[i].pagada) continue;
