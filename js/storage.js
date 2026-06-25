@@ -202,7 +202,7 @@ function renderEfectivo() {
     const saldoEl = document.getElementById('cajaSaldo');
     if (saldoEl) {
         saldoEl.textContent = formatMoney(efectivoSaldo);
-        saldoEl.style.color = efectivoSaldo >= 0 ? '#1e293b' : '#ef4444';
+        saldoEl.style.cssText = `font-size:32px;font-weight:700;margin-bottom:1rem;color:${efectivoSaldo > 0 ? '#34d399' : efectivoSaldo === 0 ? '#94a3b8' : '#ef4444'}`;
     }
 
     const histEl = document.getElementById('cajaHistorial');
@@ -214,12 +214,12 @@ function renderEfectivo() {
         return;
     }
     histEl.innerHTML = ultimos.map(m => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
             <div>
-                <div style="font-weight:600;font-size:13px">${m.nota || '—'}</div>
+                <div style="font-weight:600;font-size:13px;color:${m.nota ? '#e2e8f0' : '#94a3b8'}">${m.nota || '—'}</div>
                 <div class="small">${formatearFecha(m.fecha)}</div>
             </div>
-            <div style="font-weight:800;font-size:15px;color:${m.tipo === 'ingreso' ? '#10b981' : '#ef4444'}">
+            <div style="font-weight:800;font-size:15px;color:${m.tipo === 'ingreso' ? '#34d399' : '#f87171'}">
                 ${m.tipo === 'ingreso' ? '+' : '−'}${formatMoney(m.monto)}
             </div>
         </div>`).join('');
