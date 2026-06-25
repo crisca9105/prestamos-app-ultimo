@@ -176,49 +176,6 @@ function renderInteresesEsperados() {
         </div>`;
 }
 
-function computeProjectedCashflow(startYear, startMonth, months = 12) {
-    const res = {};
-    for (let i = 0; i < months; i++) {
-        const d = new Date(startYear, startMonth + i, 1);
-        const key = ymKey(d);
-        res[key] = 0;
-    }
-    loans.filter(l => !l.archivado).forEach(loan => {
-        loan.tabla.forEach(c => {
-            if (c.pagada || c.prorrogada) return;
-            const [y, m, d] = c.fechaCobro.split('-').map(Number);
-            const key = ymKey(new Date(y, m - 1, d));
-            if (res.hasOwnProperty(key)) res[key] += (c.cuotaFija || c.interes || 0);
-        });
-    });
-    return res;
-}
-
-function renderProjectedMountain() {
-    const data = computeProjectedCashflow(currentYear, currentMonth, 12);
-    console.log('[FLUJO PROYECTADO]', data);
-    const container = document.getElementById('projectedMountain');
-    container.innerHTML = '';
-    const labels = document.getElementById('projLabels');
-    labels.innerHTML = '';
-    const values = Object.values(data);
-    const max = Math.max(...values, 1);
-    Object.keys(data).forEach(key => {
-        const val = data[key];
-        const heightPct = Math.max(Math.round((val / max) * 100), val > 0 ? 4 : 0);
-        const barWrap = document.createElement('div');
-        barWrap.className = 'bar';
-        const bar = document.createElement('div');
-        bar.style.height = heightPct + '%';
-        bar.title = `${monthLabelFromKey(key)}: ${formatMoney(val)}`;
-        barWrap.appendChild(bar);
-        container.appendChild(barWrap);
-        const lbl = document.createElement('div');
-        lbl.style.cssText = 'width:100%;text-align:center;font-size:11px;color:#475569';
-        lbl.textContent = monthLabelFromKey(key).split(' ')[0];
-        labels.appendChild(lbl);
-    });
-}
 
 function computeCapitalPrestadoPorMes(monthsBack = 12) {
     const map = {};
@@ -424,7 +381,6 @@ function renderHistorialSnapshots() {
 function initReportSelectors() {
     populateMonthYearSelectors();
     renderMonthlyReport(); // también llama renderInteresesEsperados()
-    renderProjectedMountain();
     renderInterestsTable();
     renderMorosidadYRentabilidad();
     renderCapitalPrestadoPorMes();
