@@ -129,7 +129,21 @@ function renderInteresesEsperados() {
         });
     });
 
-    const totalCobrado = computeMonthlyReport(year, month).interestThis;
+    let totalCobrado = 0;
+    loans.forEach(loan => {
+        loan.tabla.forEach(c => {
+            if (c.pagada) {
+                const f = new Date(c.fechaPago || c.fechaCobro);
+                if (f >= start && f <= end) totalCobrado += c.interes;
+            }
+            if (!c.pagada && c.pagosInteres) {
+                c.pagosInteres.forEach(p => {
+                    const fp = new Date(p.fecha);
+                    if (fp >= start && fp <= end) totalCobrado += p.monto;
+                });
+            }
+        });
+    });
     const pendientes = Math.max(0, totalEsperado - totalCobrado);
     const pctCobrado = totalEsperado === 0 ? 0 : Math.round((totalCobrado / totalEsperado) * 100);
 
