@@ -448,7 +448,7 @@ function registrarPagoInteres(loanId, cuotaIndex) {
     const interesMensual = Math.round((loan.capitalPendiente || loan.monto) * (loan.tasa / 100));
     const vecesAntes = (cuota.pagosInteres || []).length;
 
-    if (!confirm(`¿Confirmar pago de intereses por ${formatMoney(interesMensual)}?\nCapital pendiente: ${formatMoney(loan.capitalPendiente || loan.monto)} — se corre un mes más.${vecesAntes > 0 ? `\n(Este cliente ya ha pagado ${vecesAntes} mes(es) solo de interés en esta cuota)` : ''}`)) return;
+    if (!confirm(`¿Confirmar pago de intereses por ${formatMoney(interesMensual)}?\nCapital pendiente: ${formatMoney(loan.capitalPendiente || loan.monto)}${vecesAntes > 0 ? `\n(Este cliente ya ha pagado ${vecesAntes} mes(es) solo de interés en esta cuota)` : ''}`)) return;
 
     if (!cuota.pagosInteres) cuota.pagosInteres = [];
     cuota.pagosInteres.push({
@@ -456,23 +456,47 @@ function registrarPagoInteres(loanId, cuotaIndex) {
         fecha: new Date().toISOString()
     });
 
-    // También actualizar campos legacy para compatibilidad con reportes anteriores
     cuota.interesDelMesPagado = true;
     cuota.montoInteresPagado = interesMensual;
     cuota.fechaPagoInteres = new Date().toISOString();
 
-    // Mover la cuota al siguiente mes
-    const fecha = new Date(cuota.fechaCobro);
-    fecha.setMonth(fecha.getMonth() + 1);
-    if (loan.diaCobro) {
-        const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0).getDate();
-        fecha.setDate(Math.min(loan.diaCobro, ultimoDia));
+    const prorrogar = confirm(
+        '¿Deseas prorrogar esta cuota?\n\nEl cliente pagó el interés del mes — la cuota de capital se moverá al siguiente mes y todas las cuotas posteriores se correrán un mes.'
+    );
+
+    if (prorrogar) {
+        const sumarUnMes = (fechaISO) => {
+            const d = new Date(fechaISO);
+            d.setMonth(d.getMonth() + 1);
+            if (loan.diaCobro) {
+                const ultimoDia = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+                d.setDate(Math.min(loan.diaCobro, ultimoDia));
+            }
+            return d.toISOString().split('T')[0];
+        };
+
+        // Mover fechaCobro de la cuota actual y todas las siguientes
+        for (let i = cuotaIndex; i < loan.tabla.length; i++) {
+            loan.tabla[i].fechaCobro = sumarUnMes(loan.tabla[i].fechaCobro);
+        }
+
+        // Recalcular interés de cuotas futuras no pagadas (cuotas_fijas)
+        if (loan.tipo === 'cuotas_fijas') {
+            for (let i = cuotaIndex + 1; i < loan.tabla.length; i++) {
+                if (loan.tabla[i].pagada) continue;
+                const saldoAnterior = loan.tabla[i - 1].saldo;
+                const nuevoInteres = saldoAnterior * (loan.tasa / 100);
+                const nuevoAbono = loan.tabla[i].cuotaFija - nuevoInteres;
+                loan.tabla[i].interes = nuevoInteres;
+                loan.tabla[i].abonoCapital = Math.max(0, nuevoAbono);
+                loan.tabla[i].saldo = Math.max(0, saldoAnterior - Math.max(0, nuevoAbono));
+            }
+        }
     }
-    cuota.fechaCobro = fecha.toISOString();
 
     guardarDatos();
     renderAll();
-    alert(`Pago de intereses registrado: ${formatMoney(interesMensual)}`);
+    alert(`Pago de intereses registrado: ${formatMoney(interesMensual)}${prorrogar ? '\nCuota prorrogada — fechas actualizadas.' : ''}`);
 }
 
 function pagarMulta10Porciento(loanId, idx) {
