@@ -471,6 +471,7 @@ function registrarPagoInteres(loanId, cuotaIndex) {
     });
 
     cuota.interesDelMesPagado = true;
+    cuota.soloInteresPagado = true;
     cuota.montoInteresPagado = interesMensual;
     cuota.fechaPagoInteres = fechaPago;
 
@@ -479,6 +480,8 @@ function registrarPagoInteres(loanId, cuotaIndex) {
     );
 
     if (prorrogar) {
+        cuota.prorrogada = true;
+
         const sumarUnMes = (fechaISO) => {
             const d = new Date(fechaISO);
             d.setMonth(d.getMonth() + 1);
