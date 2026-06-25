@@ -224,6 +224,64 @@ async function migracionFechasDianaSilvia() {
     renderAll();
 }
 
+async function correccionDianaSilvia2() {
+    if (localStorage.getItem('correccionDianaSilvia2') === 'true') return;
+    const diana = loans.find(l => l.nombre === 'Diana Silvia último');
+    if (diana && diana.tabla) {
+        const pi = diana.tabla.findIndex(c => c.prorrogada === true);
+        if (pi !== -1) {
+            const cp = diana.tabla[pi];
+            const saldoBase = cp.saldo;
+            const cf = cp.cuotaFija;
+            const interes = Math.round(saldoBase * (diana.tasa / 100));
+            const abono = Math.max(0, cf - interes);
+            const saldo = Math.max(0, saldoBase - abono);
+
+            diana.tabla.splice(pi + 1, 0, {
+                cuota: pi + 2,
+                cuotaFija: cf,
+                interes,
+                abonoCapital: abono,
+                saldo,
+                fechaCobro: '2026-04-05',
+                pagada: false,
+                prorrogada: false,
+                pagosInteres: [],
+                multa: 0, multaPagada: false, fechaPagoMulta: null,
+                notaPago: '', interesDelMesPagado: false,
+                soloInteresPagado: false, montoInteresPagado: 0, fechaPagoInteres: null
+            });
+
+            // Desplazar fechas de las cuotas siguientes +1 mes
+            for (let i = pi + 2; i < diana.tabla.length; i++) {
+                const d = new Date(diana.tabla[i].fechaCobro);
+                d.setMonth(d.getMonth() + 1);
+                diana.tabla[i].fechaCobro = d.toISOString().split('T')[0];
+            }
+
+            // Renumerar
+            for (let i = pi + 1; i < diana.tabla.length; i++) {
+                diana.tabla[i].cuota = i + 1;
+            }
+
+            // Recalcular en cascada
+            let sc = saldo;
+            for (let i = pi + 2; i < diana.tabla.length; i++) {
+                if (diana.tabla[i].pagada) { sc = diana.tabla[i].saldo; continue; }
+                const ni = Math.round(sc * (diana.tasa / 100));
+                const na = Math.max(0, diana.tabla[i].cuotaFija - ni);
+                sc = Math.max(0, sc - na);
+                diana.tabla[i].interes = ni;
+                diana.tabla[i].abonoCapital = na;
+                diana.tabla[i].saldo = sc;
+            }
+        }
+    }
+    localStorage.setItem('correccionDianaSilvia2', 'true');
+    await guardarDatos();
+    renderAll();
+}
+
 // Cargar todos los préstamos desde Supabase
 async function cargarDatos() {
     try {
@@ -284,6 +342,7 @@ async function cargarDatos() {
             await migracionJun2026();
             await migracionJun2026b();
             await migracionFechasDianaSilvia();
+            await correccionDianaSilvia2();
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
