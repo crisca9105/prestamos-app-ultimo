@@ -481,6 +481,7 @@ function registrarPagoInteres(loanId, cuotaIndex) {
 
     if (prorrogar) {
         cuota.prorrogada = true;
+        cuota.soloInteresPagado = true;
 
         const sumarUnMes = (fechaISO) => {
             const d = new Date(fechaISO);
@@ -492,16 +493,16 @@ function registrarPagoInteres(loanId, cuotaIndex) {
             return d.toISOString().split('T')[0];
         };
 
-        // Crear nueva cuota en la posición siguiente
-        const saldoBase = cuota.saldo;
-        const cuotaFijaNueva = cuota.cuotaFija;
+        // Saldo base: el capital antes de esta cuota (no se abonó capital)
+        const saldoBase = cuotaIndex === 0 ? loan.monto : loan.tabla[cuotaIndex - 1].saldo;
+        const cf = cuota.cuotaFija;
         const interesNueva = Math.round(saldoBase * (loan.tasa / 100));
-        const abonoNuevo = Math.max(0, cuotaFijaNueva - interesNueva);
+        const abonoNuevo = Math.max(0, cf - interesNueva);
         const saldoNuevo = Math.max(0, saldoBase - abonoNuevo);
 
         const nuevaCuota = {
             cuota: cuotaIndex + 2,
-            cuotaFija: cuotaFijaNueva,
+            cuotaFija: cf,
             interes: interesNueva,
             abonoCapital: abonoNuevo,
             saldo: saldoNuevo,
@@ -521,28 +522,22 @@ function registrarPagoInteres(loanId, cuotaIndex) {
 
         loan.tabla.splice(cuotaIndex + 1, 0, nuevaCuota);
 
-        // Desplazar fechas de las cuotas que quedaron después de la nueva
+        // Recalcular en cascada desde la cuota después de la nueva
+        let saldoCascada = saldoNuevo;
         for (let i = cuotaIndex + 2; i < loan.tabla.length; i++) {
+            if (loan.tabla[i].pagada) { saldoCascada = loan.tabla[i].saldo; continue; }
+            const ni = Math.round(saldoCascada * (loan.tasa / 100));
+            const na = Math.max(0, loan.tabla[i].cuotaFija - ni);
+            saldoCascada = Math.max(0, saldoCascada - na);
+            loan.tabla[i].interes = ni;
+            loan.tabla[i].abonoCapital = na;
+            loan.tabla[i].saldo = saldoCascada;
             loan.tabla[i].fechaCobro = sumarUnMes(loan.tabla[i].fechaCobro);
         }
 
-        // Renumerar desde la nueva cuota en adelante
-        for (let i = cuotaIndex + 1; i < loan.tabla.length; i++) {
+        // Renumerar todas las cuotas
+        for (let i = 0; i < loan.tabla.length; i++) {
             loan.tabla[i].cuota = i + 1;
-        }
-
-        // Recalcular interés en cascada desde la nueva cuota
-        if (loan.tipo === 'cuotas_fijas') {
-            let saldoCascada = saldoNuevo;
-            for (let i = cuotaIndex + 2; i < loan.tabla.length; i++) {
-                if (loan.tabla[i].pagada) { saldoCascada = loan.tabla[i].saldo; continue; }
-                const ni = Math.round(saldoCascada * (loan.tasa / 100));
-                const na = Math.max(0, loan.tabla[i].cuotaFija - ni);
-                saldoCascada = Math.max(0, saldoCascada - na);
-                loan.tabla[i].interes = ni;
-                loan.tabla[i].abonoCapital = na;
-                loan.tabla[i].saldo = saldoCascada;
-            }
         }
     }
 
