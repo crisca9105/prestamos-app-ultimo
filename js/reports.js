@@ -128,40 +128,51 @@ function renderInteresesEsperados() {
         });
     });
 
-    let totalCobrado = 0;
+    // Cobrado en el mes: flujo real (incluye pagos tardíos de meses anteriores)
+    const cobradoFlujo = computeMonthlyReport(year, month).interestThis;
+
+    // Cuotas del mes cubiertas: cuotas con fechaCobro en este mes que ya resolvieron
+    let cuotasCubiertas = 0;
     loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
             const f = new Date(c.fechaCobro);
             if (f < start || f > end) return;
             if (c.pagada) {
-                totalCobrado += c.interes;
+                cuotasCubiertas += c.interes;
             } else if (c.prorrogada) {
-                totalCobrado += (c.pagosInteres || []).reduce((s, p) => s + p.monto, 0);
+                cuotasCubiertas += (c.pagosInteres || []).reduce((s, p) => s + p.monto, 0);
             } else if ((c.pagosInteres || []).length > 0) {
-                totalCobrado += c.pagosInteres.reduce((s, p) => s + p.monto, 0);
+                cuotasCubiertas += c.pagosInteres.reduce((s, p) => s + p.monto, 0);
             }
         });
     });
-    const pendientes = Math.max(0, totalEsperado - totalCobrado);
-    const pctCobrado = totalEsperado === 0 ? 0 : Math.round((totalCobrado / totalEsperado) * 100);
+
+    const pendientes = Math.max(0, totalEsperado - cuotasCubiertas);
+    const mesLabel = new Date(year, month, 1).toLocaleString('es-CO', { month: 'long' });
 
     const container = document.getElementById('interesesEsperadosContent');
     if (!container) return;
+    container.style.gridTemplateColumns = 'repeat(4, 1fr)';
     container.innerHTML = `
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Esperados</div>
-            <div style="color:#e2e8f0;font-size:28px;font-weight:700">${formatMoney(totalEsperado)}</div>
+            <div style="color:#e2e8f0;font-size:24px;font-weight:700">${formatMoney(totalEsperado)}</div>
             <div class="small">Si todos pagan este mes</div>
         </div>
         <div>
-            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Ya cobrados</div>
-            <div style="font-size:28px;font-weight:800;color:#10b981">${formatMoney(totalCobrado)}</div>
-            <div class="small">${pctCobrado}% del total esperado</div>
+            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">💰 Cobrado en ${mesLabel}</div>
+            <div style="font-size:24px;font-weight:800;color:#34d399">${formatMoney(cobradoFlujo)}</div>
+            <div class="small">Dinero recibido este mes (incluye tardíos)</div>
         </div>
         <div>
-            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Pendientes</div>
-            <div style="font-size:28px;font-weight:800;color:${pendientes > 0 ? '#ef4444' : '#10b981'}">${formatMoney(pendientes)}</div>
-            <div class="small">${pendientes > 0 ? 'Por cobrar este mes' : 'Todo cobrado'}</div>
+            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">✅ Cuotas del mes cubiertas</div>
+            <div style="font-size:24px;font-weight:800;color:#60a5fa">${formatMoney(cuotasCubiertas)}</div>
+            <div class="small">Cuotas programadas para este mes que ya pagaron</div>
+        </div>
+        <div>
+            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">⏳ Pendientes del mes</div>
+            <div style="font-size:24px;font-weight:800;color:#f87171">${formatMoney(pendientes)}</div>
+            <div class="small">Cuotas de este mes que aún no han pagado</div>
         </div>`;
 }
 
