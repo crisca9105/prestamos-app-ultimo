@@ -70,7 +70,7 @@ function renderMonthlyReport() {
     document.getElementById('r_interest_prev').textContent = formatMoney(res.interestPrev);
     const varPct = res.totalPrev === 0 ? '—' : (((res.totalThis - res.totalPrev) / res.totalPrev) * 100).toFixed(1) + '%';
     document.getElementById('r_variation').textContent = varPct;
-    renderInteresesEsperados();
+    renderInteresesEsperados(res);
 }
 
 function computeInteresesEsperados(year, month) {
@@ -112,7 +112,7 @@ function computeInteresesCobradosMes(year, month) {
     return total;
 }
 
-function renderInteresesEsperados() {
+function renderInteresesEsperados(monthlyResult) {
     const month = parseInt(document.getElementById('reportMonthSelector').value);
     const year = parseInt(document.getElementById('reportYearSelector').value);
     const start = new Date(year, month, 1); start.setHours(0, 0, 0, 0);
@@ -128,8 +128,8 @@ function renderInteresesEsperados() {
         });
     });
 
-    // Cobrado en el mes: flujo real (incluye pagos tardíos de meses anteriores)
-    const cobradoFlujo = computeMonthlyReport(year, month).interestThis;
+    // Cobrado en el mes: reutilizar resultado ya calculado por renderMonthlyReport
+    const cobradoFlujo = (monthlyResult || computeMonthlyReport(year, month)).interestThis;
 
     // Cuotas del mes cubiertas: cuotas con fechaCobro en este mes que ya resolvieron
     let cuotasCubiertas = 0;
