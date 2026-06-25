@@ -43,8 +43,7 @@ function actualizarEstadisticas() {
     const cr = activos.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
     const ic = activos.reduce((s, l) => s + calcularStats(l).interesesPagados, 0);
     const vencidas = activos.reduce((s, l) => s + calcularStats(l).cuotasVencidas, 0);
-    document.getElementById('totalPrestado').textContent = formatMoney(tp);
-    document.getElementById('totalACobrar').textContent = formatMoney(tac);
+document.getElementById('totalACobrar').textContent = formatMoney(tac);
     document.getElementById('capitalRestante').textContent = formatMoney(cr);
     document.getElementById('interesesCobrados').textContent = formatMoney(ic);
     const tasaPromedio = activos.length === 0 ? 0 :
