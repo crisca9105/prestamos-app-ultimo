@@ -55,6 +55,47 @@ document.getElementById('totalACobrar').textContent = formatMoney(tac);
 
 function renderLoans() {
     const container = document.getElementById('loansContainer');
+
+    if (filtroActivo === 'archivados') {
+        const archivados = loans.filter(l => l.archivado);
+        if (archivados.length === 0) {
+            container.innerHTML = `<div class="loan-card" style="text-align:center;color:#64748b;padding:24px">No hay préstamos archivados.</div>`;
+            return;
+        }
+        container.innerHTML = archivados.map(loan => {
+            const s = calcularStats(loan);
+            const esSoloInteres = loan.tipo === 'solo_interes';
+            const totalInteresSolo = loan.tabla.reduce((sum, c) => sum + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
+            return `<div class="loan-card" data-loan-id="${loan.id}" style="opacity:0.75">
+                <div class="loan-header">
+                    <div>
+                        <div class="cliente-nombre" style="font-weight:800;font-size:15px">
+                            ${loan.nombre}
+                            <span style="padding:2px 8px;border-radius:999px;background:rgba(148,163,184,0.2);color:#94a3b8;font-size:11px;font-weight:700;margin-left:6px;letter-spacing:.4px">ARCHIVADO</span>
+                        </div>
+                        <div class="small">
+                            Prestado: ${formatearFecha(loan.fechaPrestamo)}
+                            ${loan.fechaArchivado ? ' · Archivado: ' + formatearFecha(loan.fechaArchivado) : ''}
+                            ${loan.telefono ? ' · Tel: ' + loan.telefono : ''}
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center">
+                        <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border-color:rgba(96,165,250,0.3)">📋 Ver detalle</button>
+                        <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
+                    </div>
+                </div>
+                <div class="loan-info" style="margin-top:10px;grid-template-columns:repeat(5,1fr)">
+                    <div><div class="small">Monto</div><div style="font-weight:800">${formatMoney(loan.monto)}</div></div>
+                    <div><div class="small">Tasa mensual</div><div style="font-weight:800;color:#8b5cf6">${loan.tasa}%</div></div>
+                    <div><div class="small">Capital restante</div><div style="font-weight:800;color:#94a3b8">${formatMoney(s.capitalRestante)}</div></div>
+                    <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(loan.cuotaFija)}</div></div>
+                    <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados + totalInteresSolo)}</div></div>
+                </div>
+            </div>`;
+        }).join('');
+        return;
+    }
+
     const activos = loans.filter(l => !l.archivado);
     const hoy = new Date(); hoy.setHours(0,0,0,0);
     const finSemana = new Date(hoy); finSemana.setDate(hoy.getDate() + 7);
@@ -109,6 +150,7 @@ function renderLoans() {
                     <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border-color:rgba(96,165,250,0.3)">📋 Estado de cuenta</button>
                     <button class="btn" onclick="registrarAbonoCapital(${loan.id})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border-color:rgba(139,92,246,0.3)">↓ Abonar capital</button>
                     <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
+                    ${!loan.archivado ? `<button class="btn" onclick="archivarPrestamo(${loan.id})" style="background:rgba(148,163,184,0.15);color:#94a3b8;border-color:rgba(148,163,184,0.3)">📦 Archivar</button>` : ''}
                     <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
                 </div>
             </div>

@@ -324,6 +324,16 @@ function exportarEstadoCuentaPDF(loanId) {
     setTimeout(() => w.print(), 400);
 }
 
+function archivarPrestamo(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    if (!confirm(`¿Archivar el préstamo de ${loan.nombre}?\nSe ocultará de la lista activa pero se conservará en el historial.`)) return;
+    loan.archivado = true;
+    loan.fechaArchivado = new Date().toISOString();
+    guardarDatos();
+    renderAll();
+}
+
 function eliminarPrestamo(id) {
     if (!confirm('¿Eliminar préstamo? Los intereses cobrados quedarán guardados en los reportes.')) return;
     const loan = loans.find(l => l.id === id);
