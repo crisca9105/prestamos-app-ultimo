@@ -21,24 +21,23 @@ export default async function handler(req, res) {
 
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // GET — leer saldo e historial actuales
+  // GET — leer saldo actual
   if (req.method === 'GET') {
     try {
       const { data, error } = await supabase
         .from('efectivo')
-        .select('saldo, historial, snapshots_capital')
+        .select('saldo, snapshots_capital')
         .eq('id', 1)
         .single();
 
       if (error && error.code === 'PGRST116') {
-        return res.status(200).json({ success: true, saldo: 0, historial: [], snapshots_capital: [] });
+        return res.status(200).json({ success: true, saldo: 0, snapshots_capital: [] });
       }
       if (error) throw error;
 
       return res.status(200).json({
         success: true,
         saldo: data.saldo ?? 0,
-        historial: data.historial ?? [],
         snapshots_capital: data.snapshots_capital ?? []
       });
     } catch (error) {
@@ -68,32 +67,23 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Body inválido: se requiere monto > 0 y tipo "ingreso"|"egreso"' });
       }
 
-      // Leer estado actual
+      // Leer saldo actual
       const { data: current } = await supabase
         .from('efectivo')
-        .select('saldo, historial')
+        .select('saldo')
         .eq('id', 1)
         .single();
 
       const saldoActual = current?.saldo ?? 0;
-      const historialActual = current?.historial ?? [];
-
       const nuevoSaldo = tipo === 'ingreso' ? saldoActual + monto : saldoActual - monto;
-      const movimiento = { fecha: new Date().toISOString(), monto, nota: nota || '', tipo };
-      const nuevoHistorial = [movimiento, ...historialActual].slice(0, 100);
 
       const { error } = await supabase
         .from('efectivo')
-        .upsert({
-          id: 1,
-          saldo: nuevoSaldo,
-          historial: nuevoHistorial,
-          updated_at: new Date().toISOString()
-        });
+        .upsert({ id: 1, saldo: nuevoSaldo, updated_at: new Date().toISOString() });
 
       if (error) throw error;
 
-      return res.status(200).json({ success: true, saldo: nuevoSaldo, historial: nuevoHistorial });
+      return res.status(200).json({ success: true, saldo: nuevoSaldo });
     } catch (error) {
       console.error('Efectivo POST error:', error);
       return res.status(500).json({ error: 'Database error', message: error.message });

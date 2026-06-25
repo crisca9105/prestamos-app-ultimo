@@ -3,7 +3,6 @@
 // Global variables (declared here to be available to all modules)
 let loans = [];
 let efectivoSaldo = 0;
-let efectivoHistorial = [];
 let efectivoSnapshots = [];
 
 function formatearFecha(f) {

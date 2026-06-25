@@ -630,7 +630,6 @@ async function cargarEfectivo() {
         const result = await hacerPeticion('efectivo', 'GET');
         if (result.success) {
             efectivoSaldo = result.saldo;
-            efectivoHistorial = result.historial;
             efectivoSnapshots = result.snapshots_capital ?? [];
             renderEfectivo();
             await verificarYGuardarSnapshot();
@@ -671,12 +670,11 @@ async function guardarSnapshotCapital() {
     }
 }
 
-async function guardarMovimientoEfectivo(monto, nota, tipo) {
+async function guardarMovimientoEfectivo(monto, tipo) {
     try {
-        const result = await hacerPeticion('efectivo', 'POST', { monto, nota, tipo });
+        const result = await hacerPeticion('efectivo', 'POST', { monto, tipo });
         if (result.success) {
             efectivoSaldo = result.saldo;
-            efectivoHistorial = result.historial;
             renderEfectivo();
             mostrarNotificacion(`${tipo === 'ingreso' ? 'Ingreso' : 'Egreso'} registrado`, 'success');
         }
@@ -694,40 +692,18 @@ function renderEfectivo() {
         saldoEl.textContent = formatMoney(efectivoSaldo);
         saldoEl.style.cssText = `font-size:32px;font-weight:700;margin-bottom:1rem;color:${efectivoSaldo > 0 ? '#34d399' : efectivoSaldo === 0 ? '#94a3b8' : '#ef4444'}`;
     }
-
-    const histEl = document.getElementById('cajaHistorial');
-    if (!histEl) return;
-
-    const ultimos = efectivoHistorial.slice(0, 10);
-    if (ultimos.length === 0) {
-        histEl.innerHTML = '<div class="small" style="color:#94a3b8;padding:8px 0">Sin movimientos registrados.</div>';
-        return;
-    }
-    histEl.innerHTML = ultimos.map(m => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
-            <div>
-                <div style="font-weight:600;font-size:13px;color:${m.nota ? '#e2e8f0' : '#94a3b8'}">${m.nota || '—'}</div>
-                <div class="small">${formatearFecha(m.fecha)}</div>
-            </div>
-            <div style="font-weight:800;font-size:15px;color:${m.tipo === 'ingreso' ? '#34d399' : '#f87171'}">
-                ${m.tipo === 'ingreso' ? '+' : '−'}${formatMoney(m.monto)}
-            </div>
-        </div>`).join('');
 }
 
 async function registrarMovimientoEfectivo(tipo) {
-    const notaEl = document.getElementById('cajaNota');
     const montoEl = document.getElementById('cajaMonto');
     const monto = parseFloat(montoEl.value);
-    const nota = notaEl.value.trim();
 
     if (!monto || monto <= 0) {
         mostrarNotificacion('Ingresa un monto válido', 'warning');
         return;
     }
 
-    await guardarMovimientoEfectivo(monto, nota, tipo);
-    notaEl.value = '';
+    await guardarMovimientoEfectivo(monto, tipo);
     montoEl.value = '';
 }
 
