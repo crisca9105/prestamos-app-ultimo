@@ -13,24 +13,23 @@ function computeMonthlyReport(year, month) {
     let totalThis = 0, interestThis = 0;
     let totalPrev = 0, interestPrev = 0;
 
-    loans.forEach(loan => {
+    const cobradoEnRango = (c, s, e) => {
+        if (c.pagada) return c.interes;
+        const pi = c.pagosInteres || [];
+        if (c.prorrogada || pi.length > 0) return pi.reduce((sum, p) => sum + p.monto, 0);
+        return 0;
+    };
+
+    loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
             const f = new Date(c.fechaCobro);
             if (f >= start && f <= end) {
                 totalThis += c.cuotaFija;
-                if (c.pagada) interestThis += c.interes;
+                interestThis += cobradoEnRango(c);
             }
             if (f >= prevStart && f <= prevEnd) {
                 totalPrev += c.cuotaFija;
-                if (c.pagada) interestPrev += c.interes;
-            }
-            // Historial de pagos de solo interés
-            if (!c.pagada && c.pagosInteres) {
-                c.pagosInteres.forEach(p => {
-                    const fp = new Date(p.fecha);
-                    if (fp >= start && fp <= end) interestThis += p.monto;
-                    if (fp >= prevStart && fp <= prevEnd) interestPrev += p.monto;
-                });
+                interestPrev += cobradoEnRango(c);
             }
         });
     });
@@ -130,17 +129,16 @@ function renderInteresesEsperados() {
     });
 
     let totalCobrado = 0;
-    loans.forEach(loan => {
+    loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
+            const f = new Date(c.fechaCobro);
+            if (f < start || f > end) return;
             if (c.pagada) {
-                const f = new Date(c.fechaPago || c.fechaCobro);
-                if (f >= start && f <= end) totalCobrado += c.interes;
-            }
-            if (!c.pagada && c.pagosInteres) {
-                c.pagosInteres.forEach(p => {
-                    const fp = new Date(p.fecha);
-                    if (fp >= start && fp <= end) totalCobrado += p.monto;
-                });
+                totalCobrado += c.interes;
+            } else if (c.prorrogada) {
+                totalCobrado += (c.pagosInteres || []).reduce((s, p) => s + p.monto, 0);
+            } else if ((c.pagosInteres || []).length > 0) {
+                totalCobrado += c.pagosInteres.reduce((s, p) => s + p.monto, 0);
             }
         });
     });
