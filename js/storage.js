@@ -657,7 +657,9 @@ async function verificarYGuardarSnapshot() {
             return sum + (l.monto - pagado);
         }, 0);
 
-    efectivoSnapshots = [...efectivoSnapshots, { fecha: hoy, capital: capitalTotal }].slice(-24);
+    const saldoEfectivo = efectivoSaldo || 0;
+    const totalPatrimonio = capitalTotal + saldoEfectivo;
+    efectivoSnapshots = [...efectivoSnapshots, { fecha: hoy, capital: capitalTotal, efectivo: saldoEfectivo, total: totalPatrimonio }].slice(-24);
     await guardarSnapshotCapital();
 }
 

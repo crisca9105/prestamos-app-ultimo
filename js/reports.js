@@ -327,12 +327,24 @@ function renderHistorialSnapshots() {
     if (!el) return;
 
     const capitalHoy = computeCapitalHoy();
+    const efectivoHoy = efectivoSaldo || 0;
+    const totalHoy = capitalHoy + efectivoHoy;
     const snaps = (efectivoSnapshots || []).slice(-24);
 
     el.innerHTML = `
-        <div style="margin-bottom:20px">
-            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;color:#94a3b8;margin-bottom:4px">Capital activo hoy</div>
-            <div style="font-size:28px;font-weight:700;color:#e2e8f0">${formatMoney(capitalHoy)}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:24px">
+            <div>
+                <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;color:#94a3b8;margin-bottom:4px">Capital prestado</div>
+                <div style="font-size:22px;font-weight:700;color:#60a5fa">${formatMoney(capitalHoy)}</div>
+            </div>
+            <div>
+                <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;color:#94a3b8;margin-bottom:4px">Efectivo disponible</div>
+                <div style="font-size:22px;font-weight:700;color:#34d399">${formatMoney(efectivoHoy)}</div>
+            </div>
+            <div>
+                <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;color:#94a3b8;margin-bottom:4px">Total patrimonio</div>
+                <div style="font-size:28px;font-weight:800;color:#e2e8f0">${formatMoney(totalHoy)}</div>
+            </div>
         </div>
         <div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:12px">Historial real de capital</div>`;
 
@@ -342,14 +354,19 @@ function renderHistorialSnapshots() {
     }
 
     const filas = snaps.map((s, i) => {
-        const variacion = i === 0 ? null : s.capital - snaps[i - 1].capital;
+        const totalS = s.total ?? s.capital;
+        const efectivoS = s.efectivo ?? 0;
+        const totalAnterior = i === 0 ? null : (snaps[i - 1].total ?? snaps[i - 1].capital);
+        const variacion = totalAnterior === null ? null : totalS - totalAnterior;
         const colorVar = variacion === null ? '#94a3b8' : variacion >= 0 ? '#10b981' : '#ef4444';
         const signVar = variacion === null ? '' : variacion >= 0 ? '+' : '';
         const [y, m, d] = s.fecha.split('-').map(Number);
         const labelFecha = new Date(y, m - 1, d).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
         return `<tr>
             <td style="padding:8px 12px;color:#e2e8f0;font-size:13px">${labelFecha}</td>
-            <td style="padding:8px 12px;color:#e2e8f0;font-weight:600;font-size:13px">${formatMoney(s.capital)}</td>
+            <td style="padding:8px 12px;color:#60a5fa;font-weight:600;font-size:13px">${formatMoney(s.capital)}</td>
+            <td style="padding:8px 12px;color:#34d399;font-weight:600;font-size:13px">${formatMoney(efectivoS)}</td>
+            <td style="padding:8px 12px;color:#e2e8f0;font-weight:700;font-size:13px">${formatMoney(totalS)}</td>
             <td style="padding:8px 12px;color:${colorVar};font-weight:600;font-size:13px">${variacion === null ? '—' : signVar + formatMoney(variacion)}</td>
         </tr>`;
     }).reverse().join('');
@@ -359,7 +376,9 @@ function renderHistorialSnapshots() {
             <thead>
                 <tr style="border-bottom:1px solid #1e3a5f">
                     <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Fecha</th>
-                    <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Capital registrado</th>
+                    <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Capital prestado</th>
+                    <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Efectivo</th>
+                    <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Total patrimonio</th>
                     <th style="padding:8px 12px;text-align:left;color:#94a3b8;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Variación vs mes anterior</th>
                 </tr>
             </thead>
