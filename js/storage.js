@@ -202,6 +202,28 @@ async function migracionJun2026b() {
     if (huboCambios) await guardarDatos();
 }
 
+async function migracionFechasDianaSilvia() {
+    if (localStorage.getItem('fechasDianaSilvia') === 'true') return;
+    const diana = loans.find(l => l.nombre === 'Diana Silvia último');
+    if (diana && diana.tabla) {
+        const prorrogadaIdx = diana.tabla.findIndex(c => c.prorrogada === true);
+        if (prorrogadaIdx !== -1) {
+            const fechaBase = diana.tabla[prorrogadaIdx].fechaCobro.split('T')[0];
+            let offset = 1;
+            for (let i = prorrogadaIdx + 1; i < diana.tabla.length; i++) {
+                if (diana.tabla[i].pagada || diana.tabla[i].prorrogada) { offset++; continue; }
+                const d = new Date(fechaBase);
+                d.setMonth(d.getMonth() + offset);
+                diana.tabla[i].fechaCobro = d.toISOString().split('T')[0];
+                offset++;
+            }
+        }
+    }
+    localStorage.setItem('fechasDianaSilvia', 'true');
+    await guardarDatos();
+    renderAll();
+}
+
 // Cargar todos los préstamos desde Supabase
 async function cargarDatos() {
     try {
@@ -261,6 +283,7 @@ async function cargarDatos() {
             await corregirFechasCuotas();
             await migracionJun2026();
             await migracionJun2026b();
+            await migracionFechasDianaSilvia();
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
