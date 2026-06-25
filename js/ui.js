@@ -106,7 +106,7 @@ function renderLoans() {
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                     ${botonesExtra}
-                    <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:#f1f5f9">📋 Estado de cuenta</button>
+                    <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border-color:rgba(96,165,250,0.3)">📋 Estado de cuenta</button>
                     <button class="btn" onclick="registrarAbonoCapital(${loan.id})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border-color:rgba(139,92,246,0.3)">↓ Abonar capital</button>
                     <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
                     <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>

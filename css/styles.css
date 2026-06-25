@@ -254,15 +254,18 @@ option {
 .search-container {
     position: relative;
     margin-bottom: 0;
-    background: var(--surface);
+    background: #1e293b;
     padding: 0 18px 14px;
-    border: 1px solid var(--border);
+    border: 1px solid #1e3a5f;
     border-top: none;
     border-bottom: none;
 }
 
 .search-container input {
     padding-left: 36px;
+    background: #162032;
+    color: #e2e8f0;
+    border-color: #1e3a5f;
 }
 
 .icon-search {
