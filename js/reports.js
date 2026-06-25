@@ -128,8 +128,8 @@ function renderInteresesEsperados(monthlyResult) {
         });
     });
 
-    // Cobrado en el mes: reutilizar resultado ya calculado por renderMonthlyReport
-    const cobradoFlujo = (monthlyResult || computeMonthlyReport(year, month)).interestThis;
+    const resultado = computeMonthlyReport(year, month);
+    const cobradoEnMes = resultado.interestThis;
 
     // Cuotas del mes cubiertas: cuotas con fechaCobro en este mes que ya resolvieron
     let cuotasCubiertas = 0;
@@ -147,7 +147,7 @@ function renderInteresesEsperados(monthlyResult) {
         });
     });
 
-    const pendientes = Math.max(0, totalEsperado - cuotasCubiertas);
+    const pendientes = Math.max(0, totalEsperado - cobradoEnMes);
     const mesLabel = new Date(year, month, 1).toLocaleString('es-CO', { month: 'long' });
 
     const container = document.getElementById('interesesEsperadosContent');
@@ -161,7 +161,7 @@ function renderInteresesEsperados(monthlyResult) {
         </div>
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">💰 Cobrado en ${mesLabel}</div>
-            <div style="font-size:24px;font-weight:800;color:#34d399">${formatMoney(cobradoFlujo)}</div>
+            <div style="font-size:24px;font-weight:800;color:#34d399">${formatMoney(cobradoEnMes)}</div>
             <div class="small">Dinero recibido este mes (incluye tardíos)</div>
         </div>
         <div>

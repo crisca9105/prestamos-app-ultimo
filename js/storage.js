@@ -458,6 +458,72 @@ async function resetDianaSilvia() {
     renderAll();
 }
 
+async function resetDianaSilviaV7() {
+    if (localStorage.getItem('resetDianaSilviaV7') === 'true') return;
+    const diana = loans.find(l => l.nombre === 'Diana Silvia último');
+    if (diana && diana.tabla) {
+        // Índice 0 (feb): no tocar, pagada=true
+
+        // Índice 1 (mar): prorrogada con valores explícitos
+        if (diana.tabla[1]) {
+            Object.assign(diana.tabla[1], {
+                prorrogada: true,
+                soloInteresPagado: true,
+                fechaCobro: '2026-03-05',
+                pagosInteres: [{ monto: 138190, fecha: '2026-03-05' }],
+                interes: 138190,
+                abonoCapital: 294441,
+                saldo: 1432928,
+                pagada: false
+            });
+        }
+
+        // Índice 2 (abr): prorrogada con valores explícitos
+        if (diana.tabla[2]) {
+            Object.assign(diana.tabla[2], {
+                prorrogada: true,
+                soloInteresPagado: true,
+                fechaCobro: '2026-04-05',
+                pagosInteres: [{ monto: 138190, fecha: '2026-04-05' }],
+                interes: 138190,
+                abonoCapital: 294441,
+                saldo: 1432928,
+                pagada: false
+            });
+        }
+
+        // Índice 3 en adelante: cascade desde saldoBase=1727369, 8%, día 5 fijo
+        let saldoBase = 1727369;
+        for (let i = 3; i < diana.tabla.length; i++) {
+            const cf = diana.tabla[i].cuotaFija;
+            const interes = Math.round(saldoBase * 0.08);
+            const abonoCapital = Math.max(0, cf - interes);
+            const saldo = Math.max(0, saldoBase - abonoCapital);
+            const d = new Date('2026-05-05');
+            d.setMonth(d.getMonth() + (i - 3));
+            d.setDate(5);
+            Object.assign(diana.tabla[i], {
+                fechaCobro: d.toISOString().split('T')[0],
+                interes,
+                abonoCapital,
+                saldo,
+                prorrogada: false,
+                pagosInteres: [],
+                pagada: false
+            });
+            saldoBase = saldo;
+        }
+
+        // Truncar a 8 cuotas (índices 0–7)
+        if (diana.tabla.length > 8) {
+            diana.tabla = diana.tabla.slice(0, 8);
+        }
+    }
+    localStorage.setItem('resetDianaSilviaV7', 'true');
+    await guardarDatos();
+    renderAll();
+}
+
 async function resetDianaSilviaFinal() {
     if (localStorage.getItem('resetDianaSilviaFinal') === 'true') return;
     const diana = loans.find(l => l.nombre === 'Diana Silvia último');
@@ -699,6 +765,7 @@ async function cargarDatos() {
             await correccionDianaSilvia5();
             await correccionDianaSilvia6();
             await resetDianaSilvia();
+            await resetDianaSilviaV7();
             await resetDianaSilviaFinal();
             await correccionLuisPolicia();
             await correccionCharlyMono();
