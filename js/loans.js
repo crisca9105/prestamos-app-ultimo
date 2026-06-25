@@ -450,15 +450,29 @@ function registrarPagoInteres(loanId, cuotaIndex) {
 
     if (!confirm(`¿Confirmar pago de intereses por ${formatMoney(interesMensual)}?${vecesAntes > 0 ? `\n(Este cliente ya ha pagado ${vecesAntes} mes(es) solo de interés en esta cuota)` : ''}`)) return;
 
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fechaCobro = new Date(cuota.fechaCobro);
+    const estaVencida = fechaCobro < hoy;
+
+    let fechaPago;
+    if (estaVencida) {
+        const fechaInput = prompt('Esta cuota está vencida. ¿En qué fecha recibiste este pago? (YYYY-MM-DD)', cuota.fechaCobro.split('T')[0]);
+        if (fechaInput === null) return;
+        fechaPago = fechaInput || cuota.fechaCobro.split('T')[0];
+    } else {
+        fechaPago = new Date().toISOString().split('T')[0];
+    }
+
     if (!cuota.pagosInteres) cuota.pagosInteres = [];
     cuota.pagosInteres.push({
         monto: interesMensual,
-        fecha: new Date().toISOString()
+        fecha: fechaPago
     });
 
     cuota.interesDelMesPagado = true;
     cuota.montoInteresPagado = interesMensual;
-    cuota.fechaPagoInteres = new Date().toISOString();
+    cuota.fechaPagoInteres = fechaPago;
 
     const prorrogar = confirm(
         '¿Deseas prorrogar esta cuota?\n\nEl cliente pagó el interés del mes — la cuota de capital se moverá al siguiente mes y todas las cuotas posteriores se correrán un mes.'
