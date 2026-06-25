@@ -81,31 +81,21 @@ function computeInteresesEsperados(year, month) {
     end.setHours(23, 59, 59, 999);
 
     let esperados = 0;
-    let cobrados = 0;
-
     loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
             const f = new Date(c.fechaCobro);
-            if (f >= start && f <= end) {
-                esperados += c.interes;
-                if (c.pagada) cobrados += c.interes;
-            }
-            if (!c.pagada && c.pagosInteres) {
-                c.pagosInteres.forEach(p => {
-                    const fp = new Date(p.fecha);
-                    if (fp >= start && fp <= end) cobrados += p.monto;
-                });
-            }
+            if (f >= start && f <= end) esperados += c.interes;
         });
     });
-
-    return { esperados, cobrados, pendientes: Math.max(0, esperados - cobrados) };
+    return esperados;
 }
 
 function renderInteresesEsperados() {
     const month = parseInt(document.getElementById('reportMonthSelector').value);
     const year = parseInt(document.getElementById('reportYearSelector').value);
-    const { esperados, cobrados, pendientes } = computeInteresesEsperados(year, month);
+    const esperados = computeInteresesEsperados(year, month);
+    const cobrados = computeMonthlyReport(year, month).interestThis;
+    const pendientes = Math.max(0, esperados - cobrados);
     const pctCobrado = esperados === 0 ? 0 : Math.round((cobrados / esperados) * 100);
     const container = document.getElementById('interesesEsperadosContent');
     if (!container) return;
