@@ -120,25 +120,16 @@ function renderInteresesEsperados() {
     const end = new Date(year, month + 1, 0); end.setHours(23, 59, 59, 999);
 
     let totalEsperado = 0;
-    let totalCobrado = 0;
 
     loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
             const f = new Date(c.fechaCobro);
             if (f < start || f > end) return;
-
             totalEsperado += c.interes;
-
-            if (c.pagada) {
-                totalCobrado += c.interes;
-            } else if (c.prorrogada) {
-                totalCobrado += (c.pagosInteres || []).reduce((s, p) => s + p.monto, 0);
-            } else if ((c.pagosInteres || []).length > 0) {
-                totalCobrado += c.pagosInteres.reduce((s, p) => s + p.monto, 0);
-            }
         });
     });
 
+    const totalCobrado = computeMonthlyReport(year, month).interestThis;
     const pendientes = Math.max(0, totalEsperado - totalCobrado);
     const pctCobrado = totalEsperado === 0 ? 0 : Math.round((totalCobrado / totalEsperado) * 100);
 
