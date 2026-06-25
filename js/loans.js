@@ -482,9 +482,9 @@ function registrarPagoInteres(loanId, cuotaIndex) {
     if (prorrogar) {
         cuota.prorrogada = true;
 
-        const sumarUnMes = (fechaISO) => {
+        const sumarNMeses = (fechaISO, n) => {
             const d = new Date(fechaISO);
-            d.setMonth(d.getMonth() + 1);
+            d.setMonth(d.getMonth() + n);
             if (loan.diaCobro) {
                 const ultimoDia = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
                 d.setDate(Math.min(loan.diaCobro, ultimoDia));
@@ -492,21 +492,26 @@ function registrarPagoInteres(loanId, cuotaIndex) {
             return d.toISOString().split('T')[0];
         };
 
-        // Mover fechaCobro solo de las cuotas SIGUIENTES (la actual no se mueve)
+        // Reasignar fechas consecutivas desde la cuota prorrogada +1 mes
+        const fechaBase = cuota.fechaCobro;
         for (let i = cuotaIndex + 1; i < loan.tabla.length; i++) {
-            loan.tabla[i].fechaCobro = sumarUnMes(loan.tabla[i].fechaCobro);
+            loan.tabla[i].fechaCobro = sumarNMeses(fechaBase, i - cuotaIndex);
         }
 
-        // Recalcular interés, abonoCapital y saldo de las cuotas movidas no pagadas
+        // Recalcular interés en cascada partiendo del saldo de la cuota prorrogada
         if (loan.tipo === 'cuotas_fijas') {
+            let saldoBase = cuota.saldo;
             for (let i = cuotaIndex + 1; i < loan.tabla.length; i++) {
-                if (loan.tabla[i].pagada) continue;
-                const saldoAnterior = loan.tabla[i - 1].saldo;
-                const nuevoInteres = saldoAnterior * (loan.tasa / 100);
-                const nuevoAbono = loan.tabla[i].cuotaFija - nuevoInteres;
+                if (loan.tabla[i].pagada) {
+                    saldoBase = loan.tabla[i].saldo;
+                    continue;
+                }
+                const nuevoInteres = Math.round(saldoBase * (loan.tasa / 100));
+                const nuevoAbono = Math.max(0, loan.tabla[i].cuotaFija - nuevoInteres);
+                saldoBase = Math.max(0, saldoBase - nuevoAbono);
                 loan.tabla[i].interes = nuevoInteres;
-                loan.tabla[i].abonoCapital = Math.max(0, nuevoAbono);
-                loan.tabla[i].saldo = Math.max(0, saldoAnterior - Math.max(0, nuevoAbono));
+                loan.tabla[i].abonoCapital = nuevoAbono;
+                loan.tabla[i].saldo = saldoBase;
             }
         }
     }
