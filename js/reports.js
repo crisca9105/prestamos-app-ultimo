@@ -116,37 +116,43 @@ function computeInteresesCobradosMes(year, month) {
 function renderInteresesEsperados() {
     const month = parseInt(document.getElementById('reportMonthSelector').value);
     const year = parseInt(document.getElementById('reportYearSelector').value);
-    const esperados = computeInteresesEsperados(year, month);
-    const cobrados = computeInteresesCobradosMes(year, month);
-    const pendientes = Math.max(0, esperados - cobrados);
-    const pctCobrado = esperados === 0 ? 0 : Math.round((cobrados / esperados) * 100);
-
     const start = new Date(year, month, 1); start.setHours(0, 0, 0, 0);
     const end = new Date(year, month + 1, 0); end.setHours(23, 59, 59, 999);
-    const detalleArray = loans.filter(l => !l.archivado).map(loan => {
-        const cuotasEnMes = loan.tabla.filter(c => { const f = new Date(c.fechaCobro); return f >= start && f <= end; });
-        const interesEsperado = cuotasEnMes.reduce((s, c) => s + c.interes, 0);
-        let interesCobrado = 0;
-        cuotasEnMes.forEach(c => {
-            if (c.pagada) { const fp = new Date(c.fechaPago || c.fechaCobro); if (fp >= start && fp <= end) interesCobrado += c.interes; }
-            (c.pagosInteres || []).forEach(p => { const fp = new Date(p.fecha); if (fp >= start && fp <= end) interesCobrado += p.monto; });
+
+    let totalEsperado = 0;
+    let totalCobrado = 0;
+
+    loans.filter(l => !l.archivado).forEach(loan => {
+        loan.tabla.forEach(c => {
+            const f = new Date(c.fechaCobro);
+            if (f < start || f > end) return;
+
+            totalEsperado += c.interes;
+
+            if (c.pagada) {
+                totalCobrado += c.interes;
+            } else if (c.prorrogada) {
+                totalCobrado += (c.pagosInteres || []).reduce((s, p) => s + p.monto, 0);
+            } else if ((c.pagosInteres || []).length > 0) {
+                totalCobrado += c.pagosInteres.reduce((s, p) => s + p.monto, 0);
+            }
         });
-        return { nombre: loan.nombre, cuotasEnMes: cuotasEnMes.length, interesEsperado, interesCobrado };
-    }).filter(d => d.cuotasEnMes > 0);
-    console.log('[INTERESES MES] Esperados:', esperados, '| Cobrados:', cobrados, '| Pendientes:', pendientes);
-    console.log('[INTERESES MES] Detalle por préstamo:', detalleArray);
+    });
+
+    const pendientes = Math.max(0, totalEsperado - totalCobrado);
+    const pctCobrado = totalEsperado === 0 ? 0 : Math.round((totalCobrado / totalEsperado) * 100);
 
     const container = document.getElementById('interesesEsperadosContent');
     if (!container) return;
     container.innerHTML = `
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Esperados</div>
-            <div style="color:#e2e8f0;font-size:28px;font-weight:700">${formatMoney(esperados)}</div>
+            <div style="color:#e2e8f0;font-size:28px;font-weight:700">${formatMoney(totalEsperado)}</div>
             <div class="small">Si todos pagan este mes</div>
         </div>
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Ya cobrados</div>
-            <div style="font-size:28px;font-weight:800;color:#10b981">${formatMoney(cobrados)}</div>
+            <div style="font-size:28px;font-weight:800;color:#10b981">${formatMoney(totalCobrado)}</div>
             <div class="small">${pctCobrado}% del total esperado</div>
         </div>
         <div>
