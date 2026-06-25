@@ -20,7 +20,7 @@ function renderResumenDia() {
     let cobrosHoy = 0, montoHoy = 0, cobrosVencidos = 0, montoVencido = 0, cobrosSemana = 0, montoSemana = 0;
     activos.forEach(loan => {
         loan.tabla.forEach(c => {
-            if (c.pagada) return;
+            if (c.pagada || c.prorrogada || (c.pagosInteres && c.pagosInteres.length > 0)) return;
             const f = new Date(c.fechaCobro); f.setHours(0,0,0,0);
             if (f.getTime() === hoy.getTime()) { cobrosHoy++; montoHoy += c.cuotaFija; }
             if (f < hoy) { cobrosVencidos++; montoVencido += c.cuotaFija; }

@@ -18,7 +18,7 @@ function getEventsInRange(startDate, endDate) {
     const events = {};
     loans.forEach(loan => {
         loan.tabla.forEach(c => {
-            if (c.pagada) return;
+            if (c.pagada || c.prorrogada || (c.pagosInteres && c.pagosInteres.length > 0)) return;
             const f = new Date(c.fechaCobro);
             f.setHours(0, 0, 0, 0);
             if (f >= startDate && f <= endDate) {
@@ -194,7 +194,7 @@ function renderGroupings() {
     const groups = { week: [], thisMonth: [], nextMonth: [], future: [] };
     loans.forEach(loan => {
         loan.tabla.forEach(c => {
-            if (c.pagada) return;
+            if (c.pagada || c.prorrogada || (c.pagosInteres && c.pagosInteres.length > 0)) return;
             const f = new Date(c.fechaCobro);
             f.setHours(0, 0, 0, 0);
             if (f >= week.start && f <= week.end) groups.week.push({ loan, c });

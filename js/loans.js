@@ -119,8 +119,9 @@ function calcularStats(loan) {
         const cuotasPagadas = loan.tabla.filter(c => c.pagada).length;
         const interesesPagados = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + c.interes, 0);
         const capitalRestante = loan.monto;
-        const proxima = loan.tabla.find(c => !c.pagada) || null;
-        const vencidas = loan.tabla.filter(c => !c.pagada && estaVencida(c.fechaCobro)).length;
+        const esPendiente = c => !c.pagada && !c.prorrogada && !(c.pagosInteres && c.pagosInteres.length > 0);
+        const proxima = loan.tabla.find(esPendiente) || null;
+        const vencidas = loan.tabla.filter(c => esPendiente(c) && estaVencida(c.fechaCobro)).length;
         return {
             cuotasPagadas,
             capitalPagado: 0,
@@ -137,8 +138,9 @@ function calcularStats(loan) {
     const interesesPagados = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + c.interes, 0);
     const capitalRestante = loan.monto - capitalPagado;
     const progreso = (cuotasPagadas / loan.cuotas) * 100;
-    const proxima = loan.tabla.find(c => !c.pagada) || null;
-    const vencidas = loan.tabla.filter(c => !c.pagada && estaVencida(c.fechaCobro)).length;
+    const esPendiente = c => !c.pagada && !c.prorrogada && !(c.pagosInteres && c.pagosInteres.length > 0);
+    const proxima = loan.tabla.find(esPendiente) || null;
+    const vencidas = loan.tabla.filter(c => esPendiente(c) && estaVencida(c.fechaCobro)).length;
     return { cuotasPagadas, capitalPagado, interesesPagados, capitalRestante, progreso, proximaCuota: proxima, cuotasVencidas: vencidas };
 }
 
