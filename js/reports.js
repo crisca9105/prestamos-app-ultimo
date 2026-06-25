@@ -326,9 +326,15 @@ function renderHistorialSnapshots() {
     const el = document.getElementById('evolucionHistorialContent');
     if (!el) return;
 
+    const capitalHoy = computeCapitalHoy();
     const snaps = (efectivoSnapshots || []).slice(-24);
 
-    el.innerHTML = `<div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:12px">Historial real de capital</div>`;
+    el.innerHTML = `
+        <div style="margin-bottom:20px">
+            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;color:#94a3b8;margin-bottom:4px">Capital activo hoy</div>
+            <div style="font-size:28px;font-weight:700;color:#e2e8f0">${formatMoney(capitalHoy)}</div>
+        </div>
+        <div style="font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:12px">Historial real de capital</div>`;
 
     if (snaps.length < 2) {
         el.innerHTML += `<div class="small" style="color:#94a3b8;padding:8px 0">El historial se irá construyendo automáticamente cada mes al abrir la app.</div>`;
@@ -362,44 +368,6 @@ function renderHistorialSnapshots() {
     </div>`;
 }
 
-function renderEvolucionCapital() {
-    const dateInput = document.getElementById('evolucionFecha');
-    const container = document.getElementById('evolucionCapitalContent');
-    const hoy = computeCapitalHoy();
-
-    if (!dateInput.value) {
-        container.innerHTML = '<div class="small" style="grid-column:1/-1">Selecciona una fecha para comparar.</div>';
-        return;
-    }
-
-    const pasado = computeCapitalAtDate(dateInput.value);
-    const diff = hoy - pasado;
-    const pct = pasado === 0 ? null : ((diff / pasado) * 100).toFixed(1);
-    const colorDiff = diff >= 0 ? '#10b981' : '#ef4444';
-    const signDiff = diff >= 0 ? '+' : '';
-    const [y, m, d] = dateInput.value.split('-').map(Number);
-    const labelFecha = new Date(y, m - 1, d).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
-
-    container.innerHTML = `
-        <div>
-            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Hoy</div>
-            <div style="font-size:28px;font-weight:800;color:#e2e8f0">${formatMoney(hoy)}</div>
-            <div class="small" style="color:#94a3b8;font-size:12px">Capital activo actualmente</div>
-        </div>
-        <div>
-            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">${labelFecha}</div>
-            <div style="font-size:28px;font-weight:800;color:#94a3b8">${formatMoney(pasado)}</div>
-            <div class="small" style="color:#94a3b8;font-size:12px">Capital prestado en esa fecha</div>
-        </div>
-        <div>
-            <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Diferencia</div>
-            <div style="font-size:28px;font-weight:800;color:${colorDiff}">${signDiff}${formatMoney(diff)}</div>
-            <div class="small">${pct !== null ? `${signDiff}${pct}% respecto a la fecha seleccionada` : '—'}</div>
-        </div>`;
-
-    renderHistorialSnapshots();
-}
-
 function initReportSelectors() {
     populateMonthYearSelectors();
     renderMonthlyReport(); // también llama renderInteresesEsperados()
@@ -407,10 +375,6 @@ function initReportSelectors() {
     renderInterestsTable();
     renderMorosidadYRentabilidad();
     renderCapitalPrestadoPorMes();
-    const hace1ano = new Date();
-    hace1ano.setFullYear(hace1ano.getFullYear() - 1);
-    document.getElementById('evolucionFecha').value = hace1ano.toISOString().slice(0, 10);
-    renderEvolucionCapital();
     renderHistorialSnapshots();
 }
 
