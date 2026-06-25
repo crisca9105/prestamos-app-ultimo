@@ -493,8 +493,8 @@ function registrarPagoInteres(loanId, cuotaIndex) {
             return d.toISOString().split('T')[0];
         };
 
-        // Saldo base: el capital antes de esta cuota (no se abonó capital)
-        const saldoBase = cuotaIndex === 0 ? loan.monto : loan.tabla[cuotaIndex - 1].saldo;
+        // Saldo base: reconstruir el saldo antes de que esta cuota abonara capital
+        const saldoBase = cuota.saldo + cuota.abonoCapital;
         const cf = cuota.cuotaFija;
         const interesNueva = Math.round(saldoBase * (loan.tasa / 100));
         const abonoNuevo = Math.max(0, cf - interesNueva);
