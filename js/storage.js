@@ -523,6 +523,62 @@ async function correccionLuisPolicia() {
     renderAll();
 }
 
+async function correccionCharlyMono() {
+    if (localStorage.getItem('correccionCharlyMono') === 'true') return;
+    const charly = loans.find(l => l.nombre === 'Charly mono');
+    if (charly && charly.tabla) {
+        const cf = charly.cuotaFija || charly.tabla[0]?.cuotaFija;
+
+        // Índice 0 (abr): prorrogada
+        charly.tabla[0] = {
+            ...charly.tabla[0],
+            cuota: 1, cuotaFija: cf,
+            interes: 231680, abonoCapital: 0, saldo: charly.monto,
+            fechaCobro: '2026-04-20', pagada: false, prorrogada: true,
+            soloInteresPagado: true, interesDelMesPagado: true,
+            pagosInteres: [{ monto: 231680, fecha: '2026-04-20' }],
+            montoInteresPagado: 231680, fechaPagoInteres: '2026-04-20',
+            multa: 0, multaPagada: false, fechaPagoMulta: null, notaPago: ''
+        };
+
+        // Índice 1 (may): prorrogada
+        charly.tabla[1] = {
+            ...charly.tabla[1],
+            cuota: 2, cuotaFija: cf,
+            interes: 231680, abonoCapital: 0, saldo: charly.monto,
+            fechaCobro: '2026-05-20', pagada: false, prorrogada: true,
+            soloInteresPagado: true, interesDelMesPagado: true,
+            pagosInteres: [{ monto: 231680, fecha: '2026-05-20' }],
+            montoInteresPagado: 231680, fechaPagoInteres: '2026-05-20',
+            multa: 0, multaPagada: false, fechaPagoMulta: null, notaPago: ''
+        };
+
+        // Índices 2+ en cascada desde loan.monto (nunca se abonó capital)
+        let saldoCascada = charly.monto;
+        for (let i = 2; i < charly.tabla.length; i++) {
+            const interes = Math.round(saldoCascada * charly.tasa / 100);
+            const abonoCapital = Math.max(0, cf - interes);
+            const saldo = Math.max(0, saldoCascada - abonoCapital);
+            const d = new Date(2026, 5 + (i - 2), 20); // jun=5, jul=6, ...
+            const fechaCobro = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-20`;
+            charly.tabla[i] = {
+                ...charly.tabla[i],
+                cuota: i + 1, cuotaFija: cf,
+                interes, abonoCapital, saldo, fechaCobro,
+                pagada: false, prorrogada: false,
+                soloInteresPagado: false, interesDelMesPagado: false,
+                montoInteresPagado: 0, fechaPagoInteres: null,
+                pagosInteres: [],
+                multa: 0, multaPagada: false, fechaPagoMulta: null, notaPago: ''
+            };
+            saldoCascada = saldo;
+        }
+    }
+    localStorage.setItem('correccionCharlyMono', 'true');
+    await guardarDatos();
+    renderAll();
+}
+
 // Cargar todos los préstamos desde Supabase
 async function cargarDatos() {
     try {
@@ -590,6 +646,7 @@ async function cargarDatos() {
             await correccionDianaSilvia6();
             await resetDianaSilvia();
             await correccionLuisPolicia();
+            await correccionCharlyMono();
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {
