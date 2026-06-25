@@ -108,7 +108,7 @@ function renderLoans() {
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                     ${botonesExtra}
                     <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:#f1f5f9">📋 Estado de cuenta</button>
-                    <button class="btn" onclick="registrarAbonoCapital(${loan.id})" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd">↓ Abonar capital</button>
+                    <button class="btn" onclick="registrarAbonoCapital(${loan.id})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border-color:rgba(139,92,246,0.3)">↓ Abonar capital</button>
                     <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
                     <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
                 </div>
@@ -145,13 +145,13 @@ function renderLoans() {
                             const historialInteres = c.pagosInteres || [];
                             const totalInteresPagado = historialInteres.reduce((s, p) => s + p.monto, 0);
 
-                            return `<tr style="background:${c.pagada ? '#d1fae5' : historialInteres.length > 0 ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
+                            return `<tr style="background:${c.pagada ? 'rgba(52,211,153,0.10)' : historialInteres.length > 0 ? 'rgba(251,191,36,0.10)' : vencida ? 'rgba(248,113,113,0.10)' : 'transparent'}">
                                 <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${i})" style="border-radius:999px;padding:6px 8px">${c.pagada ? '✓' : '○'}</button></td>
                                 <td style="padding:6px">${c.cuota}</td>
                                 <td style="padding:6px">
                                     <span id="fechaCobro-${loan.id}-${i}">${formatearFecha(c.fechaCobro)}</span>
                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${i}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
-                                    ${c.pagada ? `<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>${c.notaPago ? `<div style="font-size:11px;color:#64748b;margin-top:2px">📝 ${c.notaPago}</div>` : ''}` : ''}
+                                    ${c.pagada ? `<span style="padding:4px 8px;border-radius:6px;background:rgba(52,211,153,0.15);color:#34d399;margin-left:6px;">Pagada</span>${c.notaPago ? `<div style="font-size:11px;color:#64748b;margin-top:2px">📝 ${c.notaPago}</div>` : ''}` : ''}
                                     ${historialInteres.length > 0 && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:3px">💰 ${historialInteres.length} pago(s) de interés — total ${formatMoney(totalInteresPagado)}<br>${historialInteres.map(p => `${formatearFecha(p.fecha)}: ${formatMoney(p.monto)}`).join(' · ')}</div>` : ''}
                                 </td>
                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
@@ -170,11 +170,11 @@ function renderLoans() {
                                 <td style="padding:6px">
                                     <div style="display:flex;flex-direction:column;gap:4px">
                                         ${puedePagarSoloInteres ?
-                                            `<button class="btn" onclick="registrarPagoInteres(${loan.id},${i})" style="background:#0ea5e9;color:white;font-size:11px;padding:4px 8px">Pagar solo interés</button>`
+                                            `<button class="btn" onclick="registrarPagoInteres(${loan.id},${i})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);font-size:11px;padding:4px 8px">Pagar solo interés</button>`
                                             : ''
                                         }
                                         ${puedePagarConExcedente ?
-                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${i})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
+                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${i})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
                                             : ''
                                         }
                                     </div>
@@ -203,13 +203,13 @@ function renderLoans() {
                                             const historialInteres = c.pagosInteres || [];
                                             const totalInteresPagado = historialInteres.reduce((s, p) => s + p.monto, 0);
 
-                                            return `<tr style="background:${c.pagada ? '#d1fae5' : historialInteres.length > 0 ? '#fef9c3' : vencida ? '#fee2e2' : 'transparent'}">
+                                            return `<tr style="background:${c.pagada ? 'rgba(52,211,153,0.10)' : historialInteres.length > 0 ? 'rgba(251,191,36,0.10)' : vencida ? 'rgba(248,113,113,0.10)' : 'transparent'}">
                                                 <td style="padding:6px"><button class="btn" onclick="toggleCuota(${loan.id},${actualIndex})" style="border-radius:999px;padding:6px 8px">${c.pagada ? '✓' : '○'}</button></td>
                                                 <td style="padding:6px">${c.cuota}</td>
                                                 <td style="padding:6px">
                                                     <span id="fechaCobro-${loan.id}-${actualIndex}">${formatearFecha(c.fechaCobro)}</span>
                                                     <button class="btn" onclick="editarFechaCobro(${loan.id}, ${actualIndex}, '${c.fechaCobro}')" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
-                                                    ${c.pagada ? `<span style="padding:4px 8px;border-radius:6px;background:#d1fae5;margin-left:6px;">Pagada</span>${c.notaPago ? `<div style="font-size:11px;color:#64748b;margin-top:2px">📝 ${c.notaPago}</div>` : ''}` : ''}
+                                                    ${c.pagada ? `<span style="padding:4px 8px;border-radius:6px;background:rgba(52,211,153,0.15);color:#34d399;margin-left:6px;">Pagada</span>${c.notaPago ? `<div style="font-size:11px;color:#64748b;margin-top:2px">📝 ${c.notaPago}</div>` : ''}` : ''}
                                                     ${historialInteres.length > 0 && !c.pagada ? `<div style="font-size:11px;color:#ca8a04;margin-top:3px">💰 ${historialInteres.length} pago(s) de interés — total ${formatMoney(totalInteresPagado)}<br>${historialInteres.map(p => `${formatearFecha(p.fecha)}: ${formatMoney(p.monto)}`).join(' · ')}</div>` : ''}
                                                 </td>
                                                 <td style="padding:6px">${formatMoney(c.cuotaFija)}</td>
@@ -228,11 +228,11 @@ function renderLoans() {
                                                 <td style="padding:6px">
                                                     <div style="display:flex;flex-direction:column;gap:4px">
                                                         ${puedePagarSoloInteres ?
-                                                            `<button class="btn" onclick="registrarPagoInteres(${loan.id},${actualIndex})" style="background:#0ea5e9;color:white;font-size:11px;padding:4px 8px">Pagar solo interés</button>`
+                                                            `<button class="btn" onclick="registrarPagoInteres(${loan.id},${actualIndex})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);font-size:11px;padding:4px 8px">Pagar solo interés</button>`
                                                             : ''
                                                         }
                                                         ${puedePagarConExcedente ?
-                                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${actualIndex})" style="background:#8b5cf6;color:white;font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
+                                                            `<button class="btn" onclick="abrirModalPagoExcedente(${loan.id},${actualIndex})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border:1px solid rgba(139,92,246,0.3);font-size:11px;padding:4px 8px">Pagar cuota completa</button>`
                                                             : ''
                                                         }
                                                     </div>
