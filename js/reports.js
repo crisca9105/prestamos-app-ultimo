@@ -15,15 +15,22 @@ function computeMonthlyReport(year, month) {
 
     const cobradoEnRango = (c, s, e) => {
         if (c.pagada) {
-            const fp = c.fechaPago ? new Date(c.fechaPago) : null;
-            if (fp && fp >= s && fp <= e) return c.interes;
-            return 0;
+            // Si tiene fechaPago, verificar que caiga en el rango
+            if (c.fechaPago) {
+                const fp = new Date(c.fechaPago);
+                return (fp >= s && fp <= e) ? c.interes : 0;
+            }
+            // Si NO tiene fechaPago, usar fechaCobro como aproximación (comportamiento anterior)
+            return c.interes;
         }
+        // Pagos de solo interés: filtrar por fecha del pago
         const pi = c.pagosInteres || [];
         if (c.prorrogada || pi.length > 0) {
-            return pi
-                .filter(p => { const pd = new Date(p.fecha); return pd >= s && pd <= e; })
-                .reduce((sum, p) => sum + p.monto, 0);
+            const pagosEnRango = pi.filter(p => {
+                const pd = new Date(p.fecha);
+                return pd >= s && pd <= e;
+            });
+            return pagosEnRango.reduce((sum, p) => sum + p.monto, 0);
         }
         return 0;
     };
