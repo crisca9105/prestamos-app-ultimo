@@ -324,6 +324,16 @@ function exportarEstadoCuentaPDF(loanId) {
     setTimeout(() => w.print(), 400);
 }
 
+function desarchivarPrestamo(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    if (!confirm('¿Desarchivar el préstamo de ' + loan.nombre + '? Volverá a la lista activa.')) return;
+    loan.archivado = false;
+    delete loan.fechaArchivado;
+    guardarDatos();
+    renderAll();
+}
+
 function archivarPrestamo(loanId) {
     const loan = loans.find(l => l.id === loanId);
     if (!loan) return;
