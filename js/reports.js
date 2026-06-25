@@ -330,13 +330,13 @@ function renderEvolucionCapital() {
     container.innerHTML = `
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Hoy</div>
-            <div style="font-size:28px;font-weight:800;color:#1e293b">${formatMoney(hoy)}</div>
-            <div class="small">Capital activo actualmente</div>
+            <div style="font-size:28px;font-weight:800;color:#e2e8f0">${formatMoney(hoy)}</div>
+            <div class="small" style="color:#94a3b8;font-size:12px">Capital activo actualmente</div>
         </div>
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">${labelFecha}</div>
-            <div style="font-size:28px;font-weight:800;color:#475569">${formatMoney(pasado)}</div>
-            <div class="small">Capital prestado en esa fecha</div>
+            <div style="font-size:28px;font-weight:800;color:#94a3b8">${formatMoney(pasado)}</div>
+            <div class="small" style="color:#94a3b8;font-size:12px">Capital prestado en esa fecha</div>
         </div>
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">Diferencia</div>
