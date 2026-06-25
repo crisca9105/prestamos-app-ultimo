@@ -14,9 +14,17 @@ function computeMonthlyReport(year, month) {
     let totalPrev = 0, interestPrev = 0;
 
     const cobradoEnRango = (c, s, e) => {
-        if (c.pagada) return c.interes;
+        if (c.pagada) {
+            const fp = c.fechaPago ? new Date(c.fechaPago) : null;
+            if (fp && fp >= s && fp <= e) return c.interes;
+            return 0;
+        }
         const pi = c.pagosInteres || [];
-        if (c.prorrogada || pi.length > 0) return pi.reduce((sum, p) => sum + p.monto, 0);
+        if (c.prorrogada || pi.length > 0) {
+            return pi
+                .filter(p => { const pd = new Date(p.fecha); return pd >= s && pd <= e; })
+                .reduce((sum, p) => sum + p.monto, 0);
+        }
         return 0;
     };
 
@@ -25,11 +33,11 @@ function computeMonthlyReport(year, month) {
             const f = new Date(c.fechaCobro);
             if (f >= start && f <= end) {
                 totalThis += c.cuotaFija;
-                interestThis += cobradoEnRango(c);
+                interestThis += cobradoEnRango(c, start, end);
             }
             if (f >= prevStart && f <= prevEnd) {
                 totalPrev += c.cuotaFija;
-                interestPrev += cobradoEnRango(c);
+                interestPrev += cobradoEnRango(c, prevStart, prevEnd);
             }
         });
     });
