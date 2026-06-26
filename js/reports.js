@@ -172,13 +172,8 @@ function renderInteresesEsperados(monthlyResult) {
         loan.tabla.forEach(c => {
             const f = new Date(c.fechaCobro);
             if (f < start || f > end) return;
-            const pi = c.pagosInteres || [];
-            const sumPi = pi.reduce((sum, p) => sum + (p.monto || 0), 0);
-            if (c.pagada) {
-                cuotasCubiertas += Math.max(c.interes || 0, sumPi);
-            } else {
-                cuotasCubiertas += sumPi;
-            }
+            // Calcular lo cobrado en total a lo largo de toda la historia
+            cuotasCubiertas += calcularInteresCobradoEnRango(c, new Date(0), new Date(8640000000000000));
         });
     });
 
