@@ -2,7 +2,15 @@
 
 function calcularInteresCobradoEnRango(c, s, e) {
     let total = 0;
-    const pi = c.pagosInteres || [];
+    
+    let pi = c.pagosInteres || [];
+    if (pi.length === 0 && (c.montoInteresPagado || c.interesDelMesPagado) && c.fechaPagoInteres) {
+        pi = [{
+            monto: c.montoInteresPagado || c.interes || 0,
+            fecha: c.fechaPagoInteres
+        }];
+    }
+    
     pi.forEach(p => {
         const pd = new Date(p.fecha);
         if (pd >= s && pd <= e) {
