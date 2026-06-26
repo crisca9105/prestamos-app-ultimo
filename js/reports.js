@@ -1,5 +1,25 @@
 // ================= REPORTS MANAGEMENT =================
 
+function calcularInteresCobradoEnRango(c, s, e) {
+    let total = 0;
+    const pi = c.pagosInteres || [];
+    pi.forEach(p => {
+        const pd = new Date(p.fecha);
+        if (pd >= s && pd <= e) {
+            total += p.monto || 0;
+        }
+    });
+    if (c.pagada) {
+        const fp = c.fechaPago ? new Date(c.fechaPago) : new Date(c.fechaCobro);
+        if (fp >= s && fp <= e) {
+            const totalPagadoInteres = pi.reduce((sum, p) => sum + (p.monto || 0), 0);
+            const interesRestante = Math.max(0, (c.interes || 0) - totalPagadoInteres);
+            total += interesRestante;
+        }
+    }
+    return total;
+}
+
 function computeMonthlyReport(year, month) {
     const start = new Date(year, month, 1);
     start.setHours(0, 0, 0, 0);
@@ -13,39 +33,24 @@ function computeMonthlyReport(year, month) {
     let totalThis = 0, interestThis = 0;
     let totalPrev = 0, interestPrev = 0;
 
-    const cobradoEnRango = (c, s, e) => {
-        if (c.pagada) {
-            // Si tiene fechaPago, verificar que caiga en el rango
-            if (c.fechaPago) {
-                const fp = new Date(c.fechaPago);
-                return (fp >= s && fp <= e) ? c.interes : 0;
-            }
-            // Si NO tiene fechaPago, usar fechaCobro como aproximación (comportamiento anterior)
-            return c.interes;
-        }
-        // Pagos de solo interés: filtrar por fecha del pago
-        const pi = c.pagosInteres || [];
-        if (c.prorrogada || pi.length > 0) {
-            const pagosEnRango = pi.filter(p => {
-                const pd = new Date(p.fecha);
-                return pd >= s && pd <= e;
-            });
-            return pagosEnRango.reduce((sum, p) => sum + p.monto, 0);
-        }
-        return 0;
-    };
-
+    // Calcular montos esperados/programados (solo de préstamos activos)
     loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
             const f = new Date(c.fechaCobro);
             if (f >= start && f <= end) {
                 totalThis += c.cuotaFija;
-                interestThis += cobradoEnRango(c, start, end);
             }
             if (f >= prevStart && f <= prevEnd) {
                 totalPrev += c.cuotaFija;
-                interestPrev += cobradoEnRango(c, prevStart, prevEnd);
             }
+        });
+    });
+
+    // Calcular cobros reales de intereses (de TODOS los préstamos, activos y archivados)
+    loans.forEach(loan => {
+        loan.tabla.forEach(c => {
+            interestThis += calcularInteresCobradoEnRango(c, start, end);
+            interestPrev += calcularInteresCobradoEnRango(c, prevStart, prevEnd);
         });
     });
 
@@ -143,26 +148,33 @@ function renderInteresesEsperados(monthlyResult) {
         });
     });
 
-    const resultado = computeMonthlyReport(year, month);
-    const cobradoEnMes = resultado.interestThis;
+    // Calcular lo cobrado en el mes correspondiente únicamente a cuotas de este mes
+    let cobradoEnMesParaEsperados = 0;
+    loans.filter(l => !l.archivado).forEach(loan => {
+        loan.tabla.forEach(c => {
+            const f = new Date(c.fechaCobro);
+            if (f < start || f > end) return; // solo cuotas programadas para este mes
+            cobradoEnMesParaEsperados += calcularInteresCobradoEnRango(c, start, end);
+        });
+    });
 
-    // Cuotas del mes cubiertas: cuotas con fechaCobro en este mes que ya resolvieron
+    // Cuotas del mes cubiertas: intereses de cuotas de este mes que fueron cobrados en cualquier fecha (antes, durante o después)
     let cuotasCubiertas = 0;
     loans.filter(l => !l.archivado).forEach(loan => {
         loan.tabla.forEach(c => {
             const f = new Date(c.fechaCobro);
             if (f < start || f > end) return;
+            const pi = c.pagosInteres || [];
+            const sumPi = pi.reduce((sum, p) => sum + (p.monto || 0), 0);
             if (c.pagada) {
-                cuotasCubiertas += c.interes;
-            } else if (c.prorrogada) {
-                cuotasCubiertas += (c.pagosInteres || []).reduce((s, p) => s + p.monto, 0);
-            } else if ((c.pagosInteres || []).length > 0) {
-                cuotasCubiertas += c.pagosInteres.reduce((s, p) => s + p.monto, 0);
+                cuotasCubiertas += Math.max(c.interes || 0, sumPi);
+            } else {
+                cuotasCubiertas += sumPi;
             }
         });
     });
 
-    const pendientes = Math.max(0, totalEsperado - cobradoEnMes);
+    const pendientes = Math.max(0, totalEsperado - cuotasCubiertas);
     const mesLabel = new Date(year, month, 1).toLocaleString('es-CO', { month: 'long' });
 
     const container = document.getElementById('interesesEsperadosContent');
@@ -176,13 +188,13 @@ function renderInteresesEsperados(monthlyResult) {
         </div>
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">💰 Cobrado en ${mesLabel}</div>
-            <div style="font-size:24px;font-weight:800;color:#34d399">${formatMoney(cobradoEnMes)}</div>
-            <div class="small">Dinero recibido este mes (incluye tardíos)</div>
+            <div style="font-size:24px;font-weight:800;color:#34d399">${formatMoney(cobradoEnMesParaEsperados)}</div>
+            <div class="small">De cuotas de este mes recibidas en el mes</div>
         </div>
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">✅ Cuotas del mes cubiertas</div>
             <div style="font-size:24px;font-weight:800;color:#60a5fa">${formatMoney(cuotasCubiertas)}</div>
-            <div class="small">Cuotas programadas para este mes que ya pagaron</div>
+            <div class="small">Cuotas programadas para este mes ya resueltas (en cualquier fecha)</div>
         </div>
         <div>
             <div class="small" style="text-transform:uppercase;font-weight:700;letter-spacing:.4px;margin-bottom:4px">⏳ Pendientes del mes</div>
@@ -230,20 +242,18 @@ function computeInterestsByMonth(monthsBack = 12) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         map[ymKey(d)] = 0;
     }
+    
     loans.forEach(loan => {
         loan.tabla.forEach(c => {
-            if (c.pagada) {
-                const f = new Date(c.fechaPago || c.fechaCobro);
-                const key = ymKey(f);
-                if (map.hasOwnProperty(key)) map[key] += c.interes;
-            }
-            if (!c.pagada && c.pagosInteres) {
-                c.pagosInteres.forEach(p => {
-                    const f = new Date(p.fecha);
-                    const key = ymKey(f);
-                    if (map.hasOwnProperty(key)) map[key] += p.monto;
-                });
-            }
+            Object.keys(map).forEach(k => {
+                const [y, m] = k.split('-');
+                const s = new Date(y, parseInt(m) - 1, 1);
+                s.setHours(0, 0, 0, 0);
+                const e = new Date(y, parseInt(m), 0);
+                e.setHours(23, 59, 59, 999);
+                
+                map[k] += calcularInteresCobradoEnRango(c, s, e);
+            });
         });
     });
     return map;
@@ -273,9 +283,15 @@ function computeMorosidadYRentabilidad() {
     const tasaMorosidad = totalClientes === 0 ? 0 : Math.round((clientesMorosos / totalClientes) * 100);
 
     const interesesTotales = loans.reduce((s, l) => {
-        const pagados = l.tabla.filter(c => c.pagada).reduce((si, c) => si + c.interes, 0);
-        const soloInteres = l.tabla.reduce((si, c) => si + (c.pagosInteres || []).reduce((sp, p) => sp + p.monto, 0), 0);
-        return s + pagados + soloInteres;
+        return s + l.tabla.reduce((sum, c) => {
+            const pi = c.pagosInteres || [];
+            const sumPi = pi.reduce((sp, p) => sp + (p.monto || 0), 0);
+            if (c.pagada) {
+                return sum + Math.max(c.interes || 0, sumPi);
+            } else {
+                return sum + sumPi;
+            }
+        }, 0);
     }, 0);
     const capitalTotal = loans.reduce((s, l) => s + l.monto, 0);
     const roi = capitalTotal === 0 ? 0 : ((interesesTotales / capitalTotal) * 100).toFixed(1);
