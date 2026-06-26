@@ -345,10 +345,13 @@ function archivarPrestamo(loanId) {
 }
 
 function eliminarPrestamo(id) {
-    if (!confirm('¿Eliminar préstamo? Los intereses cobrados quedarán guardados en los reportes.')) return;
-    const loan = loans.find(l => l.id === id);
-    if (!loan) return;
-    loan.archivado = true;
+    const index = loans.findIndex(l => l.id === id);
+    if (index === -1) return;
+    const loan = loans[index];
+    
+    if (!confirm(`¿Eliminar PERMANENTEMENTE el préstamo de ${loan.nombre}?\nEsta acción borrará todo su historial de forma irreversible.`)) return;
+    
+    loans.splice(index, 1);
     guardarDatos();
     renderAll();
 }
