@@ -39,14 +39,31 @@ function renderResumenDia() {
 function actualizarEstadisticas() {
     const activos = loans.filter(l => !l.archivado);
     const activosPropios = activos.filter(l => !l.capitalAjeno);
+    const activosAjenos = activos.filter(l => l.capitalAjeno);
+
     const tp = activosPropios.reduce((s, l) => s + l.monto, 0);
     const tac = activosPropios.reduce((s, l) => s + l.totalPagar, 0);
     const cr = activosPropios.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
+
+    const tacAjeno = activosAjenos.reduce((s, l) => s + l.totalPagar, 0);
+    const crAjeno = activosAjenos.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
+
     const ic = activos.reduce((s, l) => s + calcularStats(l).interesesPagados, 0);
     const vencidas = activos.reduce((s, l) => s + calcularStats(l).cuotasVencidas, 0);
+
     document.getElementById('totalACobrar').textContent = formatMoney(tac);
     document.getElementById('capitalRestante').textContent = formatMoney(cr);
     document.getElementById('interesesCobrados').textContent = formatMoney(ic);
+
+    const elCrDesc = document.getElementById('capitalRestanteBreakdown');
+    if (elCrDesc) {
+        elCrDesc.textContent = `Total: ${formatMoney(cr + crAjeno)} (Ajeno: ${formatMoney(crAjeno)})`;
+    }
+    const elTacDesc = document.getElementById('totalACobrarBreakdown');
+    if (elTacDesc) {
+        elTacDesc.textContent = `Propio: ${formatMoney(tac)} | Ajeno: ${formatMoney(tacAjeno)}`;
+    }
+
     const tasaPromedio = activosPropios.length === 0 ? 0 :
         (activosPropios.reduce((s, l) => s + l.tasa * l.monto, 0) / activosPropios.reduce((s, l) => s + l.monto, 0)).toFixed(1);
     document.getElementById('prestamosActivos').textContent = activos.length;

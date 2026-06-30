@@ -12,8 +12,16 @@
             <h1>💰 Gestión de Préstamos</h1>
             <p class="small">Reportes mensuales · flujo proyectado · comportamiento de pagos</p>
             <div class="stats">
-<div class="stat-card"><label>Total a Cobrar</label><div class="value" id="totalACobrar">$0</div></div>
-                <div class="stat-card"><label>Capital Restante</label><div class="value" id="capitalRestante">$0</div></div>
+                <div class="stat-card">
+                    <label>Total a Cobrar</label>
+                    <div class="value" id="totalACobrar">$0</div>
+                    <div id="totalACobrarBreakdown" style="font-size:10px;color:#94a3b8;margin-top:2px;font-weight:600">Propio: $0 | Ajeno: $0</div>
+                </div>
+                <div class="stat-card">
+                    <label>Capital Restante</label>
+                    <div class="value" id="capitalRestante">$0</div>
+                    <div id="capitalRestanteBreakdown" style="font-size:10px;color:#94a3b8;margin-top:2px;font-weight:600">Total: $0 (Ajeno: $0)</div>
+                </div>
                 <div class="stat-card"><label>Intereses Cobrados</label><div class="value" id="interesesCobrados">$0</div></div>
                 <div class="stat-card"><label>Préstamos Activos</label><div class="value" id="prestamosActivos">0</div></div>
                 <div class="stat-card"><label>Cuotas Vencidas</label><div class="value" id="cuotasVencidasGlobal">0</div></div>
