@@ -86,11 +86,12 @@ function renderLoans() {
                         <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
                     </div>
                 </div>
-                <div class="loan-info" style="margin-top:10px;grid-template-columns:repeat(5,1fr)">
+                <div class="loan-info" style="margin-top:10px;grid-template-columns:repeat(6,1fr)">
                     <div><div class="small">Monto</div><div style="font-weight:800">${formatMoney(loan.monto)}</div></div>
                     <div><div class="small">Tasa mensual</div><div style="font-weight:800;color:#8b5cf6">${loan.tasa}%</div></div>
+                    <div><div class="small">Capital abonado</div><div style="font-weight:800;color:#10b981">${formatMoney(loan.monto - s.capitalRestante)}</div></div>
                     <div><div class="small">Capital restante</div><div style="font-weight:800;color:#94a3b8">${formatMoney(s.capitalRestante)}</div></div>
-                    <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(loan.cuotaFija)}</div></div>
+                    <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(s.proximaCuota ? s.proximaCuota.cuotaFija : loan.cuotaFija)}</div></div>
                     <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados + totalInteresSolo)}</div></div>
                 </div>
             </div>`;
@@ -156,11 +157,12 @@ function renderLoans() {
                     <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>
                 </div>
             </div>
-            <div class="loan-info" style="margin-top:10px;grid-template-columns:repeat(5,1fr)">
+            <div class="loan-info" style="margin-top:10px;grid-template-columns:repeat(6,1fr)">
                 <div><div class="small">Monto</div><div style="font-weight:800">${formatMoney(loan.monto)}</div></div>
                 <div><div class="small">Tasa mensual</div><div style="font-weight:800;color:#8b5cf6">${loan.tasa}%</div></div>
+                <div><div class="small">Capital abonado</div><div style="font-weight:800;color:#10b981">${formatMoney(loan.monto - s.capitalRestante)}</div></div>
                 <div><div class="small">Capital restante</div><div style="font-weight:800;color:#ef4444">${formatMoney(s.capitalRestante)}</div></div>
-                <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(loan.cuotaFija)}</div></div>
+                <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(s.proximaCuota ? s.proximaCuota.cuotaFija : loan.cuotaFija)}</div></div>
                 <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados)}</div></div>
             </div>
             <div style="margin-top:10px;font-size:13px">${s.proximaCuota ? `<div>Próximo: ${formatearFecha(s.proximaCuota.fechaCobro)} ${estaVencida(s.proximaCuota.fechaCobro) ? '<span class="badge badge-vencida">VENCIDA</span>' : ''} ${esProxima(s.proximaCuota.fechaCobro) ? '<span class="badge badge-proxima">PRÓXIMA</span>' : ''}</div>` : ''}${s.cuotasVencidas > 0 ? `<div style="margin-top:6px"><strong style="color:#ef4444">⚠️ ${s.cuotasVencidas} cuota(s) vencida(s)</strong></div>` : ''}</div>
