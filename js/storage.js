@@ -755,6 +755,10 @@ async function cargarDatos() {
                 }
             });
             
+            // Las siguientes funciones de migración histórica fueron comentadas para evitar
+            // re-ejecuciones accidentales desde diferentes dispositivos (con distinto localStorage)
+            // que corrompan los datos de Supabase.
+            /*
             await corregirFechasCuotas();
             await migracionJun2026();
             await migracionJun2026b();
@@ -769,6 +773,7 @@ async function cargarDatos() {
             await resetDianaSilviaFinal();
             await correccionLuisPolicia();
             await correccionCharlyMono();
+            */
             renderAll();
             mostrarNotificacion('Datos cargados correctamente', 'success');
         } else {

@@ -118,7 +118,7 @@ function calcularStats(loan) {
     if (loan.tipo === 'solo_interes') {
         const cuotasPagadas = loan.tabla.filter(c => c.pagada).length;
         const interesesPagados = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + c.interes, 0);
-        const capitalRestante = loan.monto;
+        const capitalRestante = loan.capitalPendiente !== undefined ? loan.capitalPendiente : loan.monto;
         const esPendiente = c => !c.pagada && !c.prorrogada && !(c.pagosInteres && c.pagosInteres.length > 0);
         const proxima = loan.tabla.find(esPendiente) || null;
         const vencidas = loan.tabla.filter(c => esPendiente(c) && estaVencida(c.fechaCobro)).length;
@@ -136,7 +136,7 @@ function calcularStats(loan) {
     const cuotasPagadas = loan.tabla.filter(c => c.pagada).length;
     const capitalPagado = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + c.abonoCapital, 0);
     const interesesPagados = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + c.interes, 0);
-    const capitalRestante = loan.monto - capitalPagado;
+    const capitalRestante = loan.capitalPendiente !== undefined ? loan.capitalPendiente : (loan.monto - capitalPagado);
     const progreso = (cuotasPagadas / loan.cuotas) * 100;
     const esPendiente = c => !c.pagada && !c.prorrogada && !(c.pagosInteres && c.pagosInteres.length > 0);
     const proxima = loan.tabla.find(esPendiente) || null;
