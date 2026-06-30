@@ -324,7 +324,7 @@ function renderMorosidadYRentabilidad() {
 
 function computeCapitalHoy() {
     return loans
-        .filter(l => !l.archivado)
+        .filter(l => !l.archivado && !l.capitalAjeno)
         .reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
 }
 

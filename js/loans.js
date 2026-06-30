@@ -48,6 +48,7 @@ function agregarPrestamo() {
     const cuotas = tipo === 'cuotas_fijas' ? parseInt(document.getElementById('cuotas').value) : null;
     const fechaPrestamo = document.getElementById('fechaPrestamo').value;
     const diaCobro = parseInt(document.getElementById('diaCobro').value) || null;
+    const capitalAjeno = document.getElementById('capitalAjeno').checked;
 
     if (!nombre || !monto || !tasa || !fechaPrestamo) {
         alert('Completa todos los campos');
@@ -75,6 +76,7 @@ function agregarPrestamo() {
             diaCobro,
             tabla: [],
             capitalPendiente: monto,
+            capitalAjeno,
             notas: '',
             comprobantes: []
         });
@@ -96,6 +98,7 @@ function agregarPrestamo() {
             diaCobro,
             tabla,
             capitalPendiente: monto,
+            capitalAjeno,
             notas: '',
             comprobantes: []
         });
@@ -111,6 +114,7 @@ function agregarPrestamo() {
     document.getElementById('fechaPrestamo').valueAsDate = new Date();
     document.getElementById('diaCobro').value = '';
     document.getElementById('tipoPrestamo').value = 'cuotas_fijas';
+    document.getElementById('capitalAjeno').checked = false;
     toggleCuotasInput();
 }
 
@@ -769,5 +773,13 @@ function deleteReceipt(loanId, receiptIndex) {
         guardarDatos();
         renderAll();
     }
+}
+
+function toggleCapitalAjeno(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+    loan.capitalAjeno = !loan.capitalAjeno;
+    guardarDatos();
+    renderAll();
 }
 

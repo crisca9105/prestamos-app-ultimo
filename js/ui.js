@@ -38,16 +38,17 @@ function renderResumenDia() {
 
 function actualizarEstadisticas() {
     const activos = loans.filter(l => !l.archivado);
-    const tp = activos.reduce((s, l) => s + l.monto, 0);
-    const tac = activos.reduce((s, l) => s + l.totalPagar, 0);
-    const cr = activos.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
+    const activosPropios = activos.filter(l => !l.capitalAjeno);
+    const tp = activosPropios.reduce((s, l) => s + l.monto, 0);
+    const tac = activosPropios.reduce((s, l) => s + l.totalPagar, 0);
+    const cr = activosPropios.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
     const ic = activos.reduce((s, l) => s + calcularStats(l).interesesPagados, 0);
     const vencidas = activos.reduce((s, l) => s + calcularStats(l).cuotasVencidas, 0);
-document.getElementById('totalACobrar').textContent = formatMoney(tac);
+    document.getElementById('totalACobrar').textContent = formatMoney(tac);
     document.getElementById('capitalRestante').textContent = formatMoney(cr);
     document.getElementById('interesesCobrados').textContent = formatMoney(ic);
-    const tasaPromedio = activos.length === 0 ? 0 :
-        (activos.reduce((s, l) => s + l.tasa * l.monto, 0) / activos.reduce((s, l) => s + l.monto, 0)).toFixed(1);
+    const tasaPromedio = activosPropios.length === 0 ? 0 :
+        (activosPropios.reduce((s, l) => s + l.tasa * l.monto, 0) / activosPropios.reduce((s, l) => s + l.monto, 0)).toFixed(1);
     document.getElementById('prestamosActivos').textContent = activos.length;
     document.getElementById('cuotasVencidasGlobal').textContent = vencidas;
     document.getElementById('tasaPromedio').textContent = tasaPromedio + '%';
@@ -70,7 +71,7 @@ function renderLoans() {
                 <div class="loan-header">
                     <div>
                         <div class="cliente-nombre" style="font-weight:800;font-size:15px">
-                            ${loan.nombre}
+                            ${loan.nombre} ${loan.capitalAjeno ? '<span class="badge badge-vencida" style="background:rgba(239,68,68,0.15);color:#ef4444;margin-left:6px;font-weight:700">CAPITAL AJENO</span>' : ''}
                             <span style="padding:2px 8px;border-radius:999px;background:rgba(148,163,184,0.2);color:#94a3b8;font-size:11px;font-weight:700;margin-left:6px;letter-spacing:.4px">ARCHIVADO</span>
                         </div>
                         <div class="small">
@@ -79,7 +80,10 @@ function renderLoans() {
                             ${loan.telefono ? ' · Tel: ' + loan.telefono : ''}
                         </div>
                     </div>
-                    <div style="display:flex;gap:6px;align-items:center">
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                        <button class="btn" onclick="toggleCapitalAjeno(${loan.id})" style="background:${loan.capitalAjeno ? 'rgba(239,68,68,0.15)' : 'transparent'};color:${loan.capitalAjeno ? '#ef4444' : '#94a3b8'};border-color:${loan.capitalAjeno ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)'}">
+                            ${loan.capitalAjeno ? '👤 Propio' : '👥 Ajeno'}
+                        </button>
                         <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border-color:rgba(96,165,250,0.3)">📋 Ver detalle</button>
                         <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
                         <button class="btn" onclick="desarchivarPrestamo(${loan.id})" style="background:rgba(52,211,153,0.15);color:#34d399;border-color:rgba(52,211,153,0.3)">↩ Desarchivar</button>
@@ -138,7 +142,7 @@ function renderLoans() {
             <div class="loan-header">
                 <div>
                     <div class="cliente-nombre" style="font-weight:800;font-size:15px">
-                        ${loan.nombre} ${tipoLabel}
+                        ${loan.nombre} ${tipoLabel} ${loan.capitalAjeno ? '<span class="badge badge-vencida" style="background:rgba(239,68,68,0.15);color:#ef4444;margin-left:6px;font-weight:700">CAPITAL AJENO</span>' : ''}
                         <button class="btn" onclick="editarNombreCliente(${loan.id})" style="margin-left:6px;padding:2px 6px;font-size:10px">✏️</button>
                     </div>
                     <div class="small">
@@ -150,6 +154,9 @@ function renderLoans() {
                 </div>
                 <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
                     ${botonesExtra}
+                    <button class="btn" onclick="toggleCapitalAjeno(${loan.id})" style="background:${loan.capitalAjeno ? 'rgba(239,68,68,0.15)' : 'transparent'};color:${loan.capitalAjeno ? '#ef4444' : '#94a3b8'};border-color:${loan.capitalAjeno ? 'rgba(239,68,68,0.3)' : 'rgba(148,163,184,0.3)'}">
+                        ${loan.capitalAjeno ? '👤 Propio' : '👥 Ajeno'}
+                    </button>
                     <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border-color:rgba(96,165,250,0.3)">📋 Estado de cuenta</button>
                     <button class="btn" onclick="registrarAbonoCapital(${loan.id})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border-color:rgba(139,92,246,0.3)">↓ Abonar capital</button>
                     <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>

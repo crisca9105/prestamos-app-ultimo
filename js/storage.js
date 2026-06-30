@@ -753,6 +753,9 @@ async function cargarDatos() {
                 if (!loan.hasOwnProperty('abonosCapital')) {
                     loan.abonosCapital = [];
                 }
+                if (!loan.hasOwnProperty('capitalAjeno')) {
+                    loan.capitalAjeno = false;
+                }
             });
             
             // Las siguientes funciones de migración histórica fueron comentadas para evitar
@@ -833,7 +836,7 @@ async function verificarYGuardarSnapshot() {
     }
 
     const capitalTotal = loans
-        .filter(l => !l.archivado)
+        .filter(l => !l.archivado && !l.capitalAjeno)
         .reduce((sum, l) => {
             if (l.capitalPendiente !== undefined) return sum + l.capitalPendiente;
             const pagado = (l.tabla || []).filter(c => c.pagada).reduce((s, c) => s + c.abonoCapital, 0);
