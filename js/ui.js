@@ -48,7 +48,11 @@ function actualizarEstadisticas() {
     const tacAjeno = activosAjenos.reduce((s, l) => s + l.totalPagar, 0);
     const crAjeno = activosAjenos.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
 
-    const ic = activos.reduce((s, l) => s + calcularStats(l).interesesPagados, 0);
+    const ic = activos.reduce((s, l) => {
+        const stats = calcularStats(l);
+        const totalInteresSolo = l.tabla.reduce((sum, c) => sum + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
+        return s + stats.interesesPagados + totalInteresSolo;
+    }, 0);
     const vencidas = activos.reduce((s, l) => s + calcularStats(l).cuotasVencidas, 0);
 
     document.getElementById('totalACobrar').textContent = formatMoney(tac);
@@ -152,6 +156,7 @@ function renderLoans() {
     container.innerHTML = ordenados.map(loan => {
         const s = calcularStats(loan);
         const esSoloInteres = loan.tipo === 'solo_interes';
+        const totalInteresSolo = loan.tabla.reduce((sum, c) => sum + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
         const tipoLabel = esSoloInteres ? '<span class="badge badge-proxima">SOLO INTERÉS</span>' : '';
         const botonesExtra = esSoloInteres ? `<button class="btn" style="background:#7c3aed;color:white" onclick="generarInteresMensual(${loan.id})">+ Generar Interés</button>` : '';
 
@@ -187,7 +192,7 @@ function renderLoans() {
                 <div><div class="small">Capital abonado</div><div style="font-weight:800;color:#10b981">${formatMoney(loan.monto - s.capitalRestante)}</div></div>
                 <div><div class="small">Capital restante</div><div style="font-weight:800;color:#ef4444">${formatMoney(s.capitalRestante)}</div></div>
                 <div><div class="small">${esSoloInteres ? 'Interés mensual' : 'Cuota'}</div><div style="font-weight:800">${formatMoney(s.proximaCuota ? s.proximaCuota.cuotaFija : loan.cuotaFija)}</div></div>
-                <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados)}</div></div>
+                <div><div class="small">Intereses cobrados</div><div style="font-weight:800;color:#10b981">${formatMoney(s.interesesPagados + totalInteresSolo)}</div></div>
             </div>
             <div style="margin-top:10px;font-size:13px">${s.proximaCuota ? `<div>Próximo: ${formatearFecha(s.proximaCuota.fechaCobro)} ${estaVencida(s.proximaCuota.fechaCobro) ? '<span class="badge badge-vencida">VENCIDA</span>' : ''} ${esProxima(s.proximaCuota.fechaCobro) ? '<span class="badge badge-proxima">PRÓXIMA</span>' : ''}</div>` : ''}${s.cuotasVencidas > 0 ? `<div style="margin-top:6px"><strong style="color:#ef4444">⚠️ ${s.cuotasVencidas} cuota(s) vencida(s)</strong></div>` : ''}</div>
             <div style="margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch">
