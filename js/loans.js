@@ -201,6 +201,12 @@ function toggleCuota(loanId, idx) {
         }
     }
 
+    if (loan.tipo === 'cuotas_fijas') {
+        const capitalPagadoTabla = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + (c.abonoCapital || 0), 0);
+        const totalAbonosCapital = (loan.abonosCapital || []).reduce((s, a) => s + a.monto, 0);
+        loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoTabla - totalAbonosCapital);
+    }
+
     guardarDatos();
     renderAll();
 }

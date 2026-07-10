@@ -730,9 +730,14 @@ async function cargarDatos() {
                         }
                     });
                 }
-                if (loan.capitalPendiente === undefined) {
-                    const capitalPagado = loan.tabla.filter(c => c.pagada).reduce((sum, c) => sum + c.abonoCapital, 0);
-                    loan.capitalPendiente = loan.monto - capitalPagado;
+                // Corregir dinámicamente capitalPendiente para sincronizar pagos de cuotas y abonos de capital
+                if (loan.tabla) {
+                    const capitalPagadoTabla = loan.tabla.filter(c => c.pagada).reduce((sum, c) => sum + (c.abonoCapital || 0), 0);
+                    const totalAbonosCapital = (loan.abonosCapital || []).reduce((sum, a) => sum + a.monto, 0);
+                    loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoTabla - totalAbonosCapital);
+                } else {
+                    const totalAbonosCapital = (loan.abonosCapital || []).reduce((sum, a) => sum + a.monto, 0);
+                    loan.capitalPendiente = Math.max(0, loan.monto - totalAbonosCapital);
                 }
             });
             

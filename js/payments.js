@@ -83,7 +83,8 @@ function pagarCuotaConExcedente(idPrestamo, numeroCuota, pagoReal, modoRecalculo
     cuota.fechaPago = hoyISO;
 
     const capitalPagadoTotal = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + (c.abonoCapital || 0), 0);
-    loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoTotal);
+    const totalAbonosCapital = (loan.abonosCapital || []).reduce((s, a) => s + a.monto, 0);
+    loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoTotal - totalAbonosCapital);
 
     recalcularCuotas(loan, modoRecalculo);
 
@@ -119,15 +120,17 @@ function recalcularCuotas(loan, modo) {
     const pagadas = loan.tabla.filter(c => c.pagada).sort((a, b) => a.cuota - b.cuota);
     const pendientes = loan.tabla.filter(c => !c.pagada).sort((a, b) => a.cuota - b.cuota);
 
+    const totalAbonosCapital = (loan.abonosCapital || []).reduce((s, a) => s + a.monto, 0);
+
     if (pendientes.length === 0) {
-        const capitalPagado = pagadas.reduce((s, c) => s + (c.abonoCapital || 0), 0);
+        const capitalPagado = pagadas.reduce((s, c) => s + (c.abonoCapital || 0), 0) + totalAbonosCapital;
         loan.capitalPendiente = Math.max(0, loan.monto - capitalPagado);
         guardarDatos();
         return;
     }
 
     const tasaMensual = loan.tasa / 100;
-    const capitalPagado = pagadas.reduce((s, c) => s + (c.abonoCapital || 0), 0);
+    const capitalPagado = pagadas.reduce((s, c) => s + (c.abonoCapital || 0), 0) + totalAbonosCapital;
     let saldo = Math.max(0, loan.monto - capitalPagado);
     loan.capitalPendiente = saldo;
 
@@ -219,7 +222,9 @@ function recalcularCuotas(loan, modo) {
 
     loan.tabla.sort((a, b) => a.cuota - b.cuota);
 
-    const capitalPagadoFinal = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + (c.abonoCapital || 0), 0);
+    const capitalPagadoFinalTabla = loan.tabla.filter(c => c.pagada).reduce((s, c) => s + (c.abonoCapital || 0), 0);
+    const totalAbonosCapitalFinal = (loan.abonosCapital || []).reduce((s, a) => s + a.monto, 0);
+    const capitalPagadoFinal = capitalPagadoFinalTabla + totalAbonosCapitalFinal;
     loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoFinal);
 
     guardarDatos();
