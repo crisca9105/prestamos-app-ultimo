@@ -739,6 +739,21 @@ async function cargarDatos() {
                     const totalAbonosCapital = (loan.abonosCapital || []).reduce((sum, a) => sum + a.monto, 0);
                     loan.capitalPendiente = Math.max(0, loan.monto - totalAbonosCapital);
                 }
+
+                if (loan.tipo === 'solo_interes') {
+                    const capitalRestante = loan.capitalPendiente !== undefined ? loan.capitalPendiente : loan.monto;
+                    const interesCalculado = Math.round(capitalRestante * (loan.tasa / 100));
+                    loan.cuotaFija = interesCalculado;
+                    if (loan.tabla) {
+                        loan.tabla.forEach(c => {
+                            if (!c.pagada) {
+                                c.cuotaFija = interesCalculado;
+                                c.interes = interesCalculado;
+                                c.saldo = capitalRestante;
+                            }
+                        });
+                    }
+                }
             });
             
             // Backward compatibility: add new properties (telefono, notas, comprobantes, archivado) to existing loans

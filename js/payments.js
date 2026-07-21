@@ -101,10 +101,11 @@ function pagarCuotaConExcedente(idPrestamo, numeroCuota, pagoReal, modoRecalculo
 function recalcularCuotas(loan, modo) {
     if (loan.tipo === 'solo_interes') {
         const tasaMensual = loan.tasa / 100;
-        let saldoActual = loan.capitalPendiente;
+        const saldoActual = loan.capitalPendiente !== undefined ? loan.capitalPendiente : loan.monto;
+        const nuevaCuota = Math.round(saldoActual * tasaMensual);
+        loan.cuotaFija = nuevaCuota;
         loan.tabla = loan.tabla.map(c => {
             if (c.pagada) return c;
-            const nuevaCuota = Math.round(saldoActual * tasaMensual);
             return {
                 ...c,
                 cuotaFija: nuevaCuota,

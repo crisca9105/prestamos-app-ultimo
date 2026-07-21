@@ -177,13 +177,14 @@ function toggleCuota(loanId, idx) {
                 }
                 return d.toISOString().split('T')[0];
             };
-            const interesMensual = Math.round(loan.monto * loan.tasa / 100);
+            const capitalRestante = loan.capitalPendiente !== undefined ? loan.capitalPendiente : loan.monto;
+            const interesMensual = Math.round(capitalRestante * loan.tasa / 100);
             loan.tabla.push({
                 cuota: loan.tabla.length + 1,
                 cuotaFija: interesMensual,
                 interes: interesMensual,
                 abonoCapital: 0,
-                saldo: loan.monto,
+                saldo: capitalRestante,
                 fechaCobro: sumarUnMes(cuota.fechaCobro),
                 pagada: false,
                 prorrogada: false,
@@ -486,14 +487,15 @@ function generarInteresMensual(id) {
         fechaCobro = calcularFechaCuota(ultimaFecha.toISOString().slice(0, 10), 1, loan.diaCobro);
     }
 
-    const interes = loan.monto * (loan.tasa / 100);
+    const capitalRestante = loan.capitalPendiente !== undefined ? loan.capitalPendiente : loan.monto;
+    const interes = Math.round(capitalRestante * (loan.tasa / 100));
     loan.tabla.push({
         cuota: loan.tabla.length + 1,
         fechaCobro: fechaCobro.toISOString(),
         cuotaFija: interes,
         interes: interes,
         abonoCapital: 0,
-        saldo: loan.monto,
+        saldo: capitalRestante,
         pagada: false,
         fechaPago: null,
         multa: 0,
