@@ -249,6 +249,48 @@
                 </div>
             </div>
         </div>
+
+        <!-- Liquidar Préstamo Modal -->
+        <div id="liquidarModal" class="modal" style="display:none;">
+            <div class="modal-content" style="max-width:520px;">
+                <h3>💰 Liquidar Préstamo Total</h3>
+                <div class="form-group">
+                    <label>Cliente:</label>
+                    <input id="liqClientName" type="text" readonly style="font-weight:700">
+                </div>
+                <div class="form-group">
+                    <label>Capital Pendiente:</label>
+                    <input id="liqCapital" type="text" readonly style="color:#ef4444;font-weight:700">
+                </div>
+                <div class="form-group">
+                    <label>Opción de Liquidación:</label>
+                    <select id="liqModo" onchange="calcularLiquidarTotales()">
+                        <option value="completo">Pagar todas las cuotas pendientes (Capital + Intereses pendientes)</option>
+                        <option value="anticipado">Cancelación anticipada (Capital + Interés del mes actual)</option>
+                        <option value="personalizado">Monto personalizado (Cifra específica a recibir)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Resumen del Cobro:</label>
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:8px;font-size:13px;line-height:1.6">
+                        <div><strong>Capital a cobrar:</strong> <span id="liqDetalleCapital">$0</span></div>
+                        <div><strong>Intereses a cobrar:</strong> <span id="liqDetalleInteres" style="color:#10b981;font-weight:700">$0</span></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Total A Recibir (Efectivo / Transferencia):</label>
+                    <input id="liqMontoTotal" type="number" oninput="onInputLiquidarMontoTotal()" style="font-size:18px;font-weight:800;color:#10b981">
+                </div>
+                <div class="form-group">
+                    <label>Nota de pago (opcional):</label>
+                    <input id="liqNota" type="text" placeholder="ej: Pago total en efectivo">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-cancel" onclick="cerrarModalLiquidar()">Cancelar</button>
+                    <button class="btn btn-success" style="background:#10b981;color:white;font-weight:700" onclick="confirmarLiquidarTotal()">✅ Confirmar Liquidación</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Receipt Viewer Modal -->
@@ -279,14 +321,14 @@
     </div>
 
     <!-- JavaScript Modules -->
-    <script src="js/utils.js"></script>
-    <script src="js/storage.js"></script>
-    <script src="js/loans.js"></script>
-    <script src="js/calendar.js"></script>
-    <script src="js/reports.js"></script>
-    <script src="js/payments.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/utils.js?v=2.0"></script>
+    <script src="js/storage.js?v=2.0"></script>
+    <script src="js/loans.js?v=2.0"></script>
+    <script src="js/calendar.js?v=2.0"></script>
+    <script src="js/reports.js?v=2.0"></script>
+    <script src="js/payments.js?v=2.0"></script>
+    <script src="js/ui.js?v=2.0"></script>
+    <script src="js/main.js?v=2.0"></script>
 </body>
 </html>
 

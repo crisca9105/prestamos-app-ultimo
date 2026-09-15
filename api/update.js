@@ -31,8 +31,12 @@ export default async function handler(req, res) {
     }
 
     // Inicializar cliente de Supabase
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseKey || supabaseKey === 'sb_secret_w71TXnud8xtdxDAK5TQUSQ_vsVKv_nj') {
+      supabaseKey = process.env.SUPABASE_ANON_KEY;
+    }
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ 
@@ -56,24 +60,32 @@ export default async function handler(req, res) {
       });
     }
 
-    // Encontrar la fila que contiene el préstamo con este id
-    const rowToUpdate = existingRows.find(row => row.data && row.data.id === loan.id);
+    // Encontrar todas las filas que contienen el préstamo con este id
+    const rowsToUpdate = existingRows.filter(row => row.data && row.data.id === loan.id);
 
-    if (!rowToUpdate) {
+    if (rowsToUpdate.length === 0) {
       return res.status(404).json({ 
         error: 'Loan not found',
         message: `Loan with id ${loan.id} not found` 
       });
     }
 
-    // Actualizar la fila
+    const mainRow = rowsToUpdate[0];
+    const duplicateRowIds = rowsToUpdate.slice(1).map(r => r.id);
+
+    // Si existen duplicados extras, eliminarlos
+    if (duplicateRowIds.length > 0) {
+      await supabase.from('prestamos').delete().in('id', duplicateRowIds);
+    }
+
+    // Actualizar la fila principal
     const { data: updatedData, error: updateError } = await supabase
       .from('prestamos')
       .update({
         data: loan,
         updated_at: new Date().toISOString()
       })
-      .eq('id', rowToUpdate.id)
+      .eq('id', mainRow.id)
       .select();
 
     if (updateError) {

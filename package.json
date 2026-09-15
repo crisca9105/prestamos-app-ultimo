@@ -4,9 +4,7 @@
   "description": "Sistema de gestión de préstamos con Supabase",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step required'",
-    "start": "vercel dev"
+    "build": "echo 'No build step required'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.87.1"

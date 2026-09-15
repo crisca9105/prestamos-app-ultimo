@@ -21,8 +21,12 @@ export default async function handler(req, res) {
 
   try {
     // Inicializar cliente de Supabase
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseKey || supabaseKey === 'sb_secret_w71TXnud8xtdxDAK5TQUSQ_vsVKv_nj') {
+      supabaseKey = process.env.SUPABASE_ANON_KEY;
+    }
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ 
@@ -56,8 +60,19 @@ export default async function handler(req, res) {
       });
     }
 
-    // Extraer los objetos de préstamos desde el campo data de cada fila
-    const loans = data.map(row => row.data);
+    // Extraer los objetos de préstamos desde el campo data de cada fila y deduplicar defensivamente por id
+    const seenIds = new Set();
+    const loans = [];
+    for (const row of data) {
+      if (row.data && row.data.id) {
+        if (!seenIds.has(row.data.id)) {
+          seenIds.add(row.data.id);
+          loans.push(row.data);
+        }
+      } else if (row.data) {
+        loans.push(row.data);
+      }
+    }
 
     return res.status(200).json({ 
       success: true, 

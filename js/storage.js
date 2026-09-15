@@ -705,7 +705,19 @@ async function cargarDatos() {
         const result = await hacerPeticion('get', 'GET');
         
         if (result.success && Array.isArray(result.data)) {
-            loans = result.data;
+            const uniqueData = [];
+            const seenIds = new Set();
+            result.data.forEach(l => {
+                if (l && l.id) {
+                    if (!seenIds.has(l.id)) {
+                        seenIds.add(l.id);
+                        uniqueData.push(l);
+                    }
+                } else if (l) {
+                    uniqueData.push(l);
+                }
+            });
+            loans = uniqueData;
             
             // Backward compatibility: add fine-related fields, interest-only fields and capitalPendiente to existing loans
             loans.forEach(loan => {
@@ -777,6 +789,17 @@ async function cargarDatos() {
                     loan.capitalAjeno = false;
                 }
             });
+
+            // Verificar si algún préstamo ya está totalmente pagado y necesita archivarse automáticamente
+            let huboAutoArchivado = false;
+            loans.forEach(loan => {
+                if (typeof verificarAutoArchivo === 'function' && verificarAutoArchivo(loan)) {
+                    huboAutoArchivado = true;
+                }
+            });
+            if (huboAutoArchivado) {
+                await guardarDatos();
+            }
             
             // Las siguientes funciones de migración histórica fueron comentadas para evitar
             // re-ejecuciones accidentales desde diferentes dispositivos (con distinto localStorage)
@@ -816,6 +839,20 @@ async function cargarDatos() {
 // Guardar todos los préstamos en Supabase
 async function guardarDatos() {
     try {
+        const uniqueLoans = [];
+        const seenIds = new Set();
+        loans.forEach(l => {
+            if (l && l.id) {
+                if (!seenIds.has(l.id)) {
+                    seenIds.add(l.id);
+                    uniqueLoans.push(l);
+                }
+            } else if (l) {
+                uniqueLoans.push(l);
+            }
+        });
+        loans = uniqueLoans;
+
         const result = await hacerPeticion('save', 'POST', { loans });
         
         if (result.success) {

@@ -48,9 +48,9 @@ function actualizarEstadisticas() {
     const tacAjeno = activosAjenos.reduce((s, l) => s + l.totalPagar, 0);
     const crAjeno = activosAjenos.reduce((s, l) => s + calcularStats(l).capitalRestante, 0);
 
-    const ic = activos.reduce((s, l) => {
+    const ic = loans.reduce((s, l) => {
         const stats = calcularStats(l);
-        const totalInteresSolo = l.tabla.reduce((sum, c) => sum + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
+        const totalInteresSolo = (l.tabla || []).reduce((sum, c) => sum + (c.pagosInteres || []).reduce((si, p) => si + p.monto, 0), 0);
         return s + stats.interesesPagados + totalInteresSolo;
     }, 0);
     const vencidas = activos.reduce((s, l) => s + calcularStats(l).cuotasVencidas, 0);
@@ -181,6 +181,7 @@ function renderLoans() {
                     </button>
                     <button class="btn" onclick="abrirEstadoCuenta(${loan.id})" style="background:rgba(96,165,250,0.15);color:#60a5fa;border-color:rgba(96,165,250,0.3)">📋 Estado de cuenta</button>
                     <button class="btn" onclick="registrarAbonoCapital(${loan.id})" style="background:rgba(139,92,246,0.15);color:#a78bfa;border-color:rgba(139,92,246,0.3)">↓ Abonar capital</button>
+                    <button class="btn" onclick="abrirModalLiquidar(${loan.id})" style="background:#10b981;color:white;font-weight:800;border-color:#10b981;box-shadow:0 2px 6px rgba(16,185,129,0.3)">💰 Liquidar todo</button>
                     <button class="btn btn-success" onclick="exportarCSV(${loan.id})">CSV</button>
                     ${!loan.archivado ? `<button class="btn" onclick="archivarPrestamo(${loan.id})" style="background:rgba(148,163,184,0.15);color:#94a3b8;border-color:rgba(148,163,184,0.3)">📦 Archivar</button>` : ''}
                     <button class="btn btn-danger" onclick="eliminarPrestamo(${loan.id})">Eliminar</button>

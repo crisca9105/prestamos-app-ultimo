@@ -17,6 +17,7 @@ function changeMonth(delta) {
 function getEventsInRange(startDate, endDate) {
     const events = {};
     loans.forEach(loan => {
+        if (loan.archivado) return;
         loan.tabla.forEach(c => {
             if (c.pagada || c.prorrogada || (c.pagosInteres && c.pagosInteres.length > 0)) return;
             const f = new Date(c.fechaCobro);

@@ -31,8 +31,12 @@ export default async function handler(req, res) {
     }
 
     // Inicializar cliente de Supabase
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseKey || supabaseKey === 'sb_secret_w71TXnud8xtdxDAK5TQUSQ_vsVKv_nj') {
+      supabaseKey = process.env.SUPABASE_ANON_KEY;
+    }
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ 
@@ -43,27 +47,44 @@ export default async function handler(req, res) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Deduplicar defensivamente la lista recibida por loan.id
+    const seenSaveIds = new Set();
+    const uniqueLoans = [];
+    for (const loan of loans) {
+      if (loan && loan.id) {
+        if (!seenSaveIds.has(loan.id)) {
+          seenSaveIds.add(loan.id);
+          uniqueLoans.push(loan);
+        }
+      } else if (loan) {
+        uniqueLoans.push(loan);
+      }
+    }
+
     // Eliminar todos los préstamos existentes
     const { error: deleteError } = await supabase
       .from('prestamos')
       .delete()
-      .neq('id', 0); // Eliminar todos (truco para eliminar todo)
+      .not('id', 'is', null);
 
     if (deleteError) {
       console.error('Error deleting existing loans:', deleteError);
-      // Continuar de todas formas, puede que no haya datos
+      return res.status(500).json({
+        error: 'Database error while clearing existing loans',
+        message: deleteError.message
+      });
     }
 
     // Si no hay préstamos, solo retornar éxito
-    if (loans.length === 0) {
+    if (uniqueLoans.length === 0) {
       return res.status(200).json({ 
         success: true, 
         message: 'All loans deleted successfully' 
       });
     }
 
-    // Insertar cada préstamo como una fila separada
-    const rowsToInsert = loans.map(loan => ({
+    // Insertar cada préstamo único como una fila separada
+    const rowsToInsert = uniqueLoans.map(loan => ({
       data: loan,
       updated_at: new Date().toISOString()
     }));
@@ -83,8 +104,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ 
       success: true, 
-      message: `${loans.length} loan(s) saved successfully`,
-      count: loans.length
+      message: `${uniqueLoans.length} loan(s) saved successfully`,
+      count: uniqueLoans.length
     });
 
   } catch (error) {

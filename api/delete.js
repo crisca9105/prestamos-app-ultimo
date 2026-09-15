@@ -31,8 +31,12 @@ export default async function handler(req, res) {
     }
 
     // Inicializar cliente de Supabase
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseKey || supabaseKey === 'sb_secret_w71TXnud8xtdxDAK5TQUSQ_vsVKv_nj') {
+      supabaseKey = process.env.SUPABASE_ANON_KEY;
+    }
 
     if (!supabaseUrl || !supabaseKey) {
       return res.status(500).json({ 
@@ -56,21 +60,23 @@ export default async function handler(req, res) {
       });
     }
 
-    // Encontrar la fila que contiene el préstamo con este id
-    const rowToDelete = existingRows.find(row => row.data && row.data.id === loanId);
+    // Encontrar todas las filas que contienen el préstamo con este id
+    const rowsToDelete = existingRows.filter(row => row.data && row.data.id === loanId);
 
-    if (!rowToDelete) {
+    if (rowsToDelete.length === 0) {
       return res.status(404).json({ 
         error: 'Loan not found',
         message: `Loan with id ${loanId} not found` 
       });
     }
 
-    // Eliminar la fila
+    const idsToDelete = rowsToDelete.map(r => r.id);
+
+    // Eliminar las filas
     const { error: deleteError } = await supabase
       .from('prestamos')
       .delete()
-      .eq('id', rowToDelete.id);
+      .in('id', idsToDelete);
 
     if (deleteError) {
       console.error('Supabase delete error:', deleteError);

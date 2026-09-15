@@ -87,13 +87,18 @@ function pagarCuotaConExcedente(idPrestamo, numeroCuota, pagoReal, modoRecalculo
     loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoTotal - totalAbonosCapital);
 
     recalcularCuotas(loan, modoRecalculo);
+    const fueArchivado = typeof verificarAutoArchivo === 'function' && verificarAutoArchivo(loan);
 
     guardarDatos();
     renderAll();
 
-    const mensaje = aplicacionExcedente > 0 ?
+    let mensaje = aplicacionExcedente > 0 ?
         `Cuota pagada. Se aplicaron ${formatMoney(aplicacionExcedente)} al capital. Cuotas futuras recalculadas.` :
         'Cuota pagada correctamente (sin excedente aplicable al capital).';
+
+    if (fueArchivado) {
+        mensaje += '\n\n¡El préstamo ha sido pagado completamente y se archivó automáticamente!';
+    }
 
     alert(mensaje);
 }
@@ -227,6 +232,7 @@ function recalcularCuotas(loan, modo) {
     const totalAbonosCapitalFinal = (loan.abonosCapital || []).reduce((s, a) => s + a.monto, 0);
     const capitalPagadoFinal = capitalPagadoFinalTabla + totalAbonosCapitalFinal;
     loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoFinal);
+    if (typeof verificarAutoArchivo === 'function') verificarAutoArchivo(loan);
 
     guardarDatos();
 }
@@ -314,6 +320,125 @@ function confirmarEdicionFecha() {
     cerrarModalEdicionFecha();
 
     alert('Fecha actualizada correctamente');
+}
+
+// ================= LOAN LIQUIDATION (PAGAR TODO DE GOLPE) =================
+
+let currentLiquidationData = {};
+
+function abrirModalLiquidar(loanId) {
+    const loan = loans.find(l => l.id === loanId);
+    if (!loan) return;
+
+    const stats = calcularStats(loan);
+    const capitalRestante = loan.capitalPendiente !== undefined ? loan.capitalPendiente : stats.capitalRestante;
+    const pendientes = loan.tabla.filter(c => !c.pagada);
+    const interesTotalPendiente = pendientes.reduce((sum, c) => sum + (c.interes || 0), 0);
+    const interesMesActual = pendientes.length > 0 ? pendientes[0].interes : Math.round(capitalRestante * loan.tasa / 100);
+
+    currentLiquidationData = {
+        loanId,
+        loan,
+        capitalRestante,
+        pendientes,
+        interesTotalPendiente,
+        interesMesActual
+    };
+
+    document.getElementById('liqClientName').value = loan.nombre;
+    document.getElementById('liqCapital').value = formatMoney(capitalRestante);
+    document.getElementById('liqModo').value = 'completo';
+    document.getElementById('liqNota').value = 'Liquidación total de préstamo';
+
+    calcularLiquidarTotales();
+
+    document.getElementById('liquidarModal').style.display = 'flex';
+}
+
+function cerrarModalLiquidar() {
+    document.getElementById('liquidarModal').style.display = 'none';
+    currentLiquidationData = {};
+}
+
+function calcularLiquidarTotales() {
+    if (!currentLiquidationData.loan) return;
+
+    const modo = document.getElementById('liqModo').value;
+    const cap = currentLiquidationData.capitalRestante;
+    let inte = 0;
+
+    if (modo === 'completo') {
+        inte = currentLiquidationData.interesTotalPendiente;
+    } else if (modo === 'anticipado') {
+        inte = currentLiquidationData.interesMesActual;
+    } else if (modo === 'personalizado') {
+        const actualInput = parseFloat(document.getElementById('liqMontoTotal').value) || (cap + currentLiquidationData.interesMesActual);
+        inte = Math.max(0, actualInput - cap);
+    }
+
+    const total = cap + inte;
+
+    document.getElementById('liqDetalleCapital').textContent = formatMoney(cap);
+    document.getElementById('liqDetalleInteres').textContent = formatMoney(inte);
+
+    if (modo !== 'personalizado') {
+        document.getElementById('liqMontoTotal').value = Math.round(total);
+    }
+}
+
+function onInputLiquidarMontoTotal() {
+    if (!currentLiquidationData.loan) return;
+    const modoSelect = document.getElementById('liqModo');
+    if (modoSelect.value !== 'personalizado') {
+        modoSelect.value = 'personalizado';
+    }
+    const cap = currentLiquidationData.capitalRestante;
+    const totalInput = parseFloat(document.getElementById('liqMontoTotal').value) || 0;
+    const inte = Math.max(0, totalInput - cap);
+    document.getElementById('liqDetalleCapital').textContent = formatMoney(cap);
+    document.getElementById('liqDetalleInteres').textContent = formatMoney(inte);
+}
+
+function confirmarLiquidarTotal() {
+    const data = currentLiquidationData;
+    if (!data || !data.loan) return;
+
+    const totalRecibido = parseFloat(document.getElementById('liqMontoTotal').value);
+    if (!totalRecibido || totalRecibido <= 0) {
+        alert('Por favor ingrese un monto válido');
+        return;
+    }
+
+    const nota = document.getElementById('liqNota').value.trim() || 'Liquidación total';
+    const hoyISO = new Date().toISOString();
+    const loan = data.loan;
+
+    const capRestante = data.capitalRestante;
+    const interesRecibido = Math.max(0, totalRecibido - capRestante);
+    const pendientes = loan.tabla.filter(c => !c.pagada);
+
+    if (pendientes.length > 0) {
+        const interesPorCuota = Math.round(interesRecibido / pendientes.length);
+        pendientes.forEach((c, idx) => {
+            c.pagada = true;
+            c.fechaPago = hoyISO;
+            c.notaPago = nota;
+            c.interes = (idx === pendientes.length - 1) ?
+                Math.max(0, interesRecibido - (interesPorCuota * (pendientes.length - 1))) :
+                interesPorCuota;
+            c.saldo = 0;
+        });
+    }
+
+    loan.capitalPendiente = 0;
+
+    const fueArchivado = typeof verificarAutoArchivo === 'function' && verificarAutoArchivo(loan);
+
+    guardarDatos();
+    renderAll();
+    cerrarModalLiquidar();
+
+    mostrarNotificacion(`¡El préstamo de ${loan.nombre} ha sido liquidado por ${formatMoney(totalRecibido)} y archivado automáticamente!`, 'success');
 }
 
 

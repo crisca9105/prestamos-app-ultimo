@@ -8,7 +8,7 @@ let supabase = null;
 function initSupabase() {
     // Get Supabase URL and key from environment variables or use defaults
     const supabaseUrl = 'https://jtezcpntdqkfgswcbxvq.supabase.co';
-    const supabaseKey = 'sb_secret_w71TXnud8xtdxDAK5TQUSQ_vsVKv_nj';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0ZXpjcG50ZHFrZmdzd2NieHZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MTI5NTYsImV4cCI6MjA4MTA4ODk1Nn0.FjPgJ6Qs5uqvwB48IfyzbgqF1ypV7UMC4ukMSZhRL2Y';
     
     // Check if Supabase is available
     if (typeof window.supabase === 'undefined') {

@@ -208,8 +208,40 @@ function toggleCuota(loanId, idx) {
         loan.capitalPendiente = Math.max(0, loan.monto - capitalPagadoTabla - totalAbonosCapital);
     }
 
+    const fueArchivado = verificarAutoArchivo(loan);
+
     guardarDatos();
     renderAll();
+
+    if (fueArchivado) {
+        mostrarNotificacion(`El préstamo de ${loan.nombre} ha sido pagado completamente y se archivó automáticamente.`, 'success');
+    }
+}
+
+function verificarAutoArchivo(loan) {
+    if (!loan || !loan.tabla) return false;
+    
+    const tieneCuotas = loan.tabla.length > 0;
+    const todasPagadas = tieneCuotas && loan.tabla.every(c => c.pagada);
+    const capitalCero = loan.capitalPendiente !== undefined && loan.capitalPendiente <= 0;
+    
+    let totalmentePagado = false;
+    if (loan.tipo === 'cuotas_fijas') {
+        totalmentePagado = todasPagadas || (capitalCero && !loan.tabla.some(c => !c.pagada));
+    } else if (loan.tipo === 'solo_interes') {
+        totalmentePagado = capitalCero && (!tieneCuotas || todasPagadas);
+    }
+    
+    if (totalmentePagado && !loan.archivado) {
+        loan.archivado = true;
+        loan.fechaArchivado = new Date().toISOString();
+        return true;
+    } else if (!totalmentePagado && loan.archivado) {
+        loan.archivado = false;
+        delete loan.fechaArchivado;
+        return false;
+    }
+    return false;
 }
 
 let currentEstadoCuentaLoanId = null;
@@ -231,10 +263,25 @@ function registrarAbonoCapital(loanId) {
     loan.abonosCapital.push({ monto, fecha: new Date().toISOString(), nota });
     loan.capitalPendiente = Math.max(0, capitalActual - monto);
 
+    if (loan.capitalPendiente <= 0 && loan.tipo === 'cuotas_fijas') {
+        loan.tabla.forEach(c => {
+            if (!c.pagada) {
+                c.pagada = true;
+                c.fechaPago = new Date().toISOString();
+            }
+        });
+    }
+
     recalcularCuotas(loan, 'A');
+    const fueArchivado = verificarAutoArchivo(loan);
+
     guardarDatos();
     renderAll();
-    alert(`Abono de ${formatMoney(monto)} registrado.\nCapital pendiente: ${formatMoney(loan.capitalPendiente)}`);
+    let msg = `Abono de ${formatMoney(monto)} registrado.\nCapital pendiente: ${formatMoney(loan.capitalPendiente)}`;
+    if (fueArchivado) {
+        msg += `\n\n¡Préstamo pagado completamente! Se ha archivado automáticamente.`;
+    }
+    alert(msg);
 }
 
 function abrirEstadoCuenta(loanId) {
