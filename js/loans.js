@@ -236,10 +236,6 @@ function verificarAutoArchivo(loan) {
         loan.archivado = true;
         loan.fechaArchivado = new Date().toISOString();
         return true;
-    } else if (!totalmentePagado && loan.archivado) {
-        loan.archivado = false;
-        delete loan.fechaArchivado;
-        return false;
     }
     return false;
 }
