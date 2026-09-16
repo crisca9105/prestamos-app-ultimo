@@ -60,7 +60,21 @@ function agregarPrestamo() {
     }
 
     if (tipo === 'solo_interes') {
-        const interesMensual = monto * (tasa / 100);
+        const interesMensual = Math.round(monto * (tasa / 100));
+        const fechaCobroPrimera = calcularFechaCuota(fechaPrestamo, 1, diaCobro);
+        const primeraCuota = {
+            cuota: 1,
+            fechaCobro: fechaCobroPrimera.toISOString(),
+            cuotaFija: interesMensual,
+            interes: interesMensual,
+            abonoCapital: 0,
+            saldo: monto,
+            pagada: false,
+            fechaPago: null,
+            multa: 0,
+            multaPagada: false,
+            fechaPagoMulta: null
+        };
         loans.unshift({
             id: Date.now(),
             nombre,
@@ -74,7 +88,7 @@ function agregarPrestamo() {
             totalIntereses: 0,
             fechaPrestamo,
             diaCobro,
-            tabla: [],
+            tabla: [primeraCuota],
             capitalPendiente: monto,
             capitalAjeno,
             notas: '',
